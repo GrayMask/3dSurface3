@@ -285,6 +285,7 @@ void getProjectorGroupNum(int& num) {
 void matchFeaturePoints(int const numOfProjectorGroup) {
 	vector<cv::Point>*** camsPixels = new vector<cv::Point>**[numOfProjectorGroup];
 	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	ostringstream numStr;
 	for (int i = 0; i < numOfProjectorGroup; i++) {
 		sprintf(projectorGroupDirTemp, projector_group_dir, i);
 		cv::String imagesDir1 = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
@@ -308,22 +309,43 @@ void matchFeaturePoints(int const numOfProjectorGroup) {
 			computeShadows(shadowMask, captured_pattern[numOfIimg - 2], captured_pattern[numOfIimg - 1]);
 
 			decodePaterns(shadowMask, captured_pattern, camsPixels[i][j]);
+			numStr << j;
+			Tools::saveCamsPixelsForReconstuction(camsPixels[i][j], imagesDir1 + numStr.str() + decodefileType);
 		}
 	}
+
+}
+
+void Sfm::executeDecoding() {
+	int numOfProjectorGroup;
+	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
+	makeSfmDir(numOfProjectorGroup);
+	matchFeaturePoints(numOfProjectorGroup);
+}
+
+void Sfm::executeMatching() {
+	int numOfProjectorGroup;
+	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
 	// save feature points
 	int count = 0;
+	vector<cv::Point>*** camsPixels = new vector<cv::Point>**[numOfProjectorGroup];
+	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	ostringstream numStr;
 	for (int i = 0; i < numOfProjectorGroup; i++) {
 		sprintf(projectorGroupDirTemp, projector_group_dir, i);
 		cv::String imagesDir1 = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
 		int numOfImageGroup;
 		Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfImageGroup);
+		camsPixels[i] = new vector<cv::Point>*[numOfImageGroup];
 		for (int j = 0; j < numOfImageGroup; j++) {
-			if (i=0 || j!=0) {
-				if (j == numOfImageGroup-1 && i < numOfProjectorGroup-1) {
+			if (i = 0 || j != 0) {
+				numStr << j;
+				Tools::loadCamsPixelsForReconstuction(camsPixels[i][j], imagesDir1 + numStr.str() + decodefileType);
+				if (j == numOfImageGroup - 1 && i < numOfProjectorGroup - 1) {
 					int sz = sizeof(camsPixels[i][j]);
 					vector<cv::Point>* temp = (vector<cv::Point>*)malloc(sz * 2);
 					memcpy(temp, camsPixels[i][j], sz);
-					memcpy(temp + sz, camsPixels[i+1][0], sz);
+					memcpy(temp + sz, camsPixels[i + 1][0], sz);
 					saveFeaturePoints(temp, count);
 				}
 				else {
@@ -334,13 +356,5 @@ void matchFeaturePoints(int const numOfProjectorGroup) {
 		}
 	}
 	// save match
-
-	//saveMatch(camsPixels, numOfGroup);
-}
-
-void Sfm::executeSfm() {
-	int numOfProjectorGroup;
-	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
-	makeSfmDir(numOfProjectorGroup);
-	//matchFeaturePoints(numOfProjectorGroup);
+	saveMatch(camsPixels, numOfProjectorGroup);
 }

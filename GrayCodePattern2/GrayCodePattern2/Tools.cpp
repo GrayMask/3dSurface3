@@ -192,11 +192,9 @@ void Tools::myCalcHist(cv::Mat gray_plane)
 	cvShowImage("H-S Histogram", hist_image);
 }
 
-void Tools::saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, int num) {
+void Tools::saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, cv::String path) {
 	ofstream ouF;
-	ostringstream numStr;
-	numStr << num;
-	ouF.open((root_dir + sfm_dir + numStr.str() + ".pxl").c_str());
+	ouF.open(path.c_str());
 	int sz = proj_width * proj_height;
 	for (int i = 0; i < sz; i++) {
 		vector<cv::Point> points = camPixels[i];
@@ -210,13 +208,11 @@ void Tools::saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, int num
 	ouF.close();
 }
 
-void Tools::loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels, int num) {
-	camPixels.resize(0);
+void Tools::loadCamsPixelsForReconstuction(vector<cv::Point>* camPixels, cv::String path) {
 	ifstream inF;
-	ostringstream numStr;
-	numStr << num;
-	inF.open((root_dir + sfm_dir + numStr.str() + ".pxl").c_str());
+	inF.open(path.c_str());
 	int sz = proj_width * proj_height;
+	camPixels = new vector<cv::Point>[sz];
 	string line;
 	int x;
 	int y;
@@ -232,7 +228,7 @@ void Tools::loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels,
 			cv::Point point(x, y);
 			points.push_back(point);
 		}
-		camPixels.push_back(points);
+		camPixels[i]= points;
 	}
 	inF.close();
 }

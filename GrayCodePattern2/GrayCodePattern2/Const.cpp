@@ -24,6 +24,7 @@ extern const int projector_group_dir_length = 22;
 extern const cv::String images_file = "pattern_im";
 extern const cv::String imagesName_file = "imgName.yaml";
 extern const cv::String imgType = ".jpg";
+extern const cv::String decodefileType = ".pxl";
 extern const cv::String sfm_dir = expr_dir + "sfm_images\\";
 extern const cv::String sfm_file = sfm_dir + "d.nvm.cmvs\\00\\cameras_v2.txt";
 //extern const cv::String ply_file = "pointCloud.ply";

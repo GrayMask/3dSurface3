@@ -19,8 +19,8 @@ public:
 
 	static void myCalcHist(cv::Mat gray_plane);
 
-	static void saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, int num);
+	static void saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, cv::String path);
 
-	static void loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels, int num);
+	static void loadCamsPixelsForReconstuction(vector<cv::Point>* camPixels, cv::String path);
 };
 #endif

@@ -5,6 +5,7 @@ using namespace std;
 class Sfm
 {
 public:
-	static void Sfm::executeSfm();
+	static void Sfm::executeDecoding();
+	static void Sfm::executeMatching();
 };
 #endif
