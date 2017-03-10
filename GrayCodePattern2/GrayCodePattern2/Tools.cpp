@@ -208,11 +208,12 @@ void Tools::saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, cv::Str
 	ouF.close();
 }
 
-void Tools::loadCamsPixelsForReconstuction(vector<cv::Point>* camPixels, cv::String path) {
+void Tools::loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels, cv::String path) {
 	ifstream inF;
 	inF.open(path.c_str());
 	int sz = proj_width * proj_height;
-	camPixels = new vector<cv::Point>[sz];
+	camPixels.resize(0);
+	//camPixels = new vector<cv::Point>[sz];
 	string line;
 	int x;
 	int y;
@@ -228,7 +229,7 @@ void Tools::loadCamsPixelsForReconstuction(vector<cv::Point>* camPixels, cv::Str
 			cv::Point point(x, y);
 			points.push_back(point);
 		}
-		camPixels[i]= points;
+		camPixels.push_back(points);
 	}
 	inF.close();
 }

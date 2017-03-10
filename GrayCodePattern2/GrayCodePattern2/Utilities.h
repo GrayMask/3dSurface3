@@ -44,7 +44,7 @@ class Utilities
 		static bool				line_lineIntersection(cv::Point3f p1, cv::Vec3f v1, cv::Point3f p2,cv::Vec3f v2,cv::Point3f &p);
 		static int				accessMat(cv::Mat m, int x, int y, int i);
 		static int				accessMat(cv::Mat m, int x, int y);
-		static void				loadCamImgs(const vector<string>& imagelist, vector<cv::Mat>& captured_pattern);
+		static void				loadCamImgs(const cv::String rootPath, const vector<string>& imagelist, vector<cv::Mat>& captured_pattern);
 		static int				ac(int x, int y);
 		static int				grayToDec(vector<bool> gray);
 };

@@ -463,12 +463,12 @@ int Utilities::accessMat(cv::Mat m, int x, int y)
 
 }
 
-void Utilities::loadCamImgs(const vector<string>& imagelist, vector<cv::Mat>& captured_pattern) {
+void Utilities::loadCamImgs(const cv::String rootPath, const vector<string>& imagelist, vector<cv::Mat>& captured_pattern) {
 	int numberOfPatternImages = imagelist.size();
 	captured_pattern.resize(0);
 	for (size_t i = 0; i < numberOfPatternImages; i++)
 	{
-		captured_pattern.push_back(imread(imagelist[i], cv::IMREAD_GRAYSCALE));
+		captured_pattern.push_back(imread(rootPath + imagelist[i], cv::IMREAD_GRAYSCALE));
 	}
 }
 
