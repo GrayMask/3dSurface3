@@ -107,7 +107,7 @@ void GrayCodePattern::getGrayCodeImages()
 								save1 = imwrite(imagesFile1, frame1);
 								if (save1) {
 									cout << "pattern cam1 images number " << i + 1 << " saved" << endl << endl;
-									fs1 << imagesFile1;
+									fs1 << images_file + name.str() + imgType;
 									i++;
 									break;
 								}
