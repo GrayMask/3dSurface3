@@ -11,7 +11,7 @@ extern const int cam_exp = 50;
 extern const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "1";
+extern const cv::String exprNum = "2";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
