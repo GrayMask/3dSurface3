@@ -9,6 +9,8 @@
 //------------------------------------------------------------------------------------------------------------
 
 #include "Utilities.h"
+#include "Path.h"
+#include "Tools.h"
 #include "Const.h"
 #include <opencv2/highgui.hpp>
 
@@ -493,4 +495,25 @@ int Utilities::grayToDec(vector<bool> gray)
 			dec += (int)pow((float)2, int(gray.size() - i - 1));
 	}
 	return dec;
+}
+
+void Utilities::writeShadowMask(cv::Mat& shadowMask, const cv::String& fname) {
+	imwrite(fname, shadowMask * 255);
+}
+
+void Utilities::readShadowMask(cv::Mat& shadowMask, const int projectNum, const int imageGroupNum) {
+	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	sprintf(projectorGroupDirTemp, projector_group_dir, projectNum);
+	cv::String imagesDir1 = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
+	ostringstream numStr;
+	numStr << imageGroupNum;
+	shadowMask = imread(imagesDir1 + shadowMask_file + numStr.str() + imgType, cv::IMREAD_GRAYSCALE) / 255;
+}
+
+void Utilities::readNumOfImageGroup(const int projectNum, int& groupNum) {
+	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	sprintf(projectorGroupDirTemp, projector_group_dir, projectNum);
+	cv::String imagesDir1 = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
+	int numOfImageGroup1;
+	Tools::readGroupNumFile(imagesDir1 + imageGroupNum_file, groupNum);
 }

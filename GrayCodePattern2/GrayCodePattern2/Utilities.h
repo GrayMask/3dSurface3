@@ -47,5 +47,8 @@ class Utilities
 		static void				loadCamImgs(const cv::String rootPath, const vector<string>& imagelist, vector<cv::Mat>& captured_pattern);
 		static int				ac(int x, int y);
 		static int				grayToDec(vector<bool> gray);
+		static void				writeShadowMask(cv::Mat& shadowMask, const cv::String& fname);
+		static void				readShadowMask(cv::Mat& shadowMask, const int projectNum, const int imageGroupNum);
+		static void				readNumOfImageGroup(const int projectNum, int& groupNum);
 };
 

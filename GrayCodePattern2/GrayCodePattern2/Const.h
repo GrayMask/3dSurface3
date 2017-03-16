@@ -26,19 +26,24 @@ extern const cv::String imgType;
 extern const cv::String decodefileType;
 extern const cv::String sfm_dir;
 extern const cv::String sfm_file;
-extern const cv::String ply_file;
+extern const cv::String shadowMask_file;
+//extern const cv::String ply_file;
 
 extern const bool isThresh;
 extern const size_t white_thresh;
 extern const size_t black_thresh;
 
-extern const bool isRemap;
+extern const float mapping_thresh;
+
+extern const cv::Point nullPoint;
+
+//extern const bool isRemap;
 
 // Optimize disparity map
-extern const bool isOptimize;
-extern const float downPortion;
-extern const float upPortion;
+//extern const bool isOptimize;
+//extern const float downPortion;
+//extern const float upPortion;
 
-extern const bool isShowResult;
+//extern const bool isShowResult;
 
-extern const bool isUnderWorld;
+//extern const bool isUnderWorld;
