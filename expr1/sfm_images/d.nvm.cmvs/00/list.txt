@@ -6,3 +6,4 @@ visualize\00000004.jpg
 visualize\00000005.jpg
 visualize\00000006.jpg
 visualize\00000007.jpg
+visualize\00000008.jpg

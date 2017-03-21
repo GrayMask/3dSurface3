@@ -16,7 +16,7 @@
 
 struct PointWithCode {
 	cv::Point point;
-	int code;
+	int index;
 };
 
 void makeSfmDir(int const numOfProjectorGroup) {
@@ -186,18 +186,22 @@ void saveFeaturePoints(vector<PointWithCode>& camPixels, int num) {
 	vector<float> ldData;
 	ldData.resize(0);
 	int sz = camPixels.size();
+	int count = 0;
 	for (int i = 0; i < sz; i++) {
 		PointWithCode pwc = camPixels[i];
-		ldData.push_back(pwc.point.x);
-		ldData.push_back(pwc.point.y);
-		ldData.push_back(0);
-		ldData.push_back(0);
-		ldData.push_back(0);
+		if (pwc.index != -1) {
+			ldData.push_back(pwc.point.x);
+			ldData.push_back(pwc.point.y);
+			ldData.push_back(0);
+			ldData.push_back(0);
+			ldData.push_back(0);
+			count++;
+		}
 	}
-	unsigned char* ddData = new unsigned char[128 * sz];
-	memset(ddData, 0, 128 * sz);
-	ld->setx(5, sz, ldData.data());
-	dd->setx(128, sz, ddData);
+	unsigned char* ddData = new unsigned char[128 * count];
+	memset(ddData, 0, 128 * count);
+	ld->setx(5, count, ldData.data());
+	dd->setx(128, count, ddData);
 	FeatureData fd(ld, dd);
 	ostringstream numStr;
 	numStr << num;
@@ -213,31 +217,26 @@ float distanceOfTwoPoints(cv::Point point1, cv::Point point2) {
 void calcCodeMapOfTwoProjecterPosition(vector<PointWithCode>& camsPixels1, vector<PointWithCode>& camsPixels2, cv::Mat shadowMask2, map<int, int>& codeMap) {
 	int sz1 = camsPixels1.size();
 	int sz2 = camsPixels2.size();
+	shadowMask2.convertTo(shadowMask2, CV_32S);
 	for (int i = 0; i < sz1; i++) {
 		PointWithCode pwc1 = camsPixels1[i];
-		shadowMask2.convertTo(shadowMask2, CV_32S);
-		if (Utilities::matGet2D(shadowMask2 ,pwc1.point.x, pwc1.point.y) == 1) {
+		if (pwc1.index != -1 && Utilities::matGet2D(shadowMask2 ,pwc1.point.x, pwc1.point.y) == 1) {
 			float nearestDist = mapping_thresh;
 			for (int j = 0; j < sz2; j++) {
 				PointWithCode pwc2 = camsPixels2[j];
-				float dist = distanceOfTwoPoints(pwc1.point, pwc2.point);
-				if (dist < nearestDist) {
-					codeMap[pwc1.code] = pwc2.code;
-					nearestDist = dist;
+				if (pwc2.index != -1) {
+					float dist = distanceOfTwoPoints(pwc1.point, pwc2.point);
+					if (dist < nearestDist) {
+						codeMap[i] = j;
+						nearestDist = dist;
+						if (dist == 0) {
+							break;
+						}
+					}
 				}
 			}
 		}
 	}
-}
-
-int findIndexOfSameCodeInList(vector<PointWithCode>& camPixels, int code) {
-	int sz = camPixels.size();
-	for (int i = 0; i < sz; i++) {
-		if (camPixels[i].code == code) {
-			return i;
-		}
-	}
-	return -1;
 }
 
 void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
@@ -268,25 +267,23 @@ void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
 				int sz = camPixels1.size();
 				for (int k = 0; k < sz; k++) {
 					PointWithCode pwc1 = camPixels1[k];
-					int codeFin = pwc1.code;
-					if (numI != numJ) {
-						map<int, int>::iterator iter;
-						iter = codeMap.find(pwc1.code);
-						if (iter != codeMap.end()) {
-							codeFin = iter->second;
+					if (pwc1.index != -1) {
+						int codeFin = k;
+						if (numI != numJ) {
+							map<int, int>::iterator iter;
+							iter = codeMap.find(k);
+							if (iter != codeMap.end()) {
+								codeFin = iter->second;
+							}
+							else {
+								continue;
+							}
 						}
-						else {
-							continue;
+						int idx2 = camPixels2[codeFin].index;
+						if (idx2 != -1) {
+							matches[0].push_back(pwc1.index);
+							matches[1].push_back(idx2);
 						}
-					}
-					int index = findIndexOfSameCodeInList(camPixels2, codeFin);
-					if (index > 0) {
-						if (i == numOfImageGroup1 - 1) {
-							matches[0].push_back(k + sizeOfLastOfProjectorGroup1);
-						} else {
-							matches[0].push_back(k);
-						}
-						matches[1].push_back(index);
 					}
 				}
 				int matchSz = matches[0].size();
@@ -300,6 +297,7 @@ void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
 			}
 			count++;
 		}
+		count = count - numOfImageGroup2 + 1;
 	}
 	
 	ouF.close();
@@ -353,6 +351,7 @@ void Sfm::executeMatching() {
 	// save feature points
 	vector<PointWithCode>** avgCamsPixels = new vector<PointWithCode>*[numOfProjectorGroup];
 	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	int idx = 0;
 	for (int i = 0; i < numOfProjectorGroup; i++) {
 		sprintf(projectorGroupDirTemp, projector_group_dir, i);
 		cv::String imagesDir1 = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
@@ -360,7 +359,7 @@ void Sfm::executeMatching() {
 		Tools::readGroupNumFile(imagesDir1 + imageGroupNum_file, numOfImageGroup);
 		avgCamsPixels[i] = new vector<PointWithCode>[numOfImageGroup];
 		for (int j = 0; j < numOfImageGroup; j++) {
-			int count = 0;
+			idx = j==0? idx : 0;
 			avgCamsPixels[i][j].resize(0);
 			vector<vector<cv::Point>> camsPixels;
 			ostringstream numStr;
@@ -370,16 +369,20 @@ void Sfm::executeMatching() {
 			for (int n = 0; n < sz; n++) {
 				cv::Point avg = 0;
 				int numOFPoint = camsPixels[n].size();
+				PointWithCode pwc;
 				if (numOFPoint > 0) {
 					for (int m = 0; m < numOFPoint; m++) {
 						avg += camsPixels[n][m];
 					}
 					avg /= numOFPoint;
-					PointWithCode pwc;
-					pwc.code = n;
+					pwc.index = idx;
 					pwc.point = avg;
-					avgCamsPixels[i][j].push_back(pwc);
+					idx++;
 				}
+				else {
+					pwc.index = -1;
+				}
+				avgCamsPixels[i][j].push_back(pwc);
 			}
 		}
 	}

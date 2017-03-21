@@ -34,7 +34,7 @@ extern const bool isThresh = true;
 extern const size_t white_thresh = 5;
 extern const size_t black_thresh = 40;
 
-extern const float mapping_thresh = 3;
+extern const float mapping_thresh = 0.5;
 
 extern const cv::Point nullPoint = -1;
 
