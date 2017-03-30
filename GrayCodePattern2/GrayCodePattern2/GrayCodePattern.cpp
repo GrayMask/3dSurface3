@@ -2,12 +2,14 @@
 #include <opencv2/structured_light.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
+#include <fstream>
 #include <io.h>
 #include <direct.h>
 #include "GrayCodePattern.h"
 #include "Path.h"
 #include "Const.h"
 #include "Tools.h"
+#include "Utilities.h"
 
 using namespace std;
 using namespace cv;
@@ -220,4 +222,30 @@ void GrayCodePattern::getGrayCodeImagesForIphone()
 		}
 	}
 	Tools::writeGroupNumFile(root_dir + projectorGroupNum_file, projectorGroupNum);
+}
+
+void GrayCodePattern::changeIphoneFileName() {
+
+	int count = 856;
+	int numOfProjectorGroup;
+	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
+	for (int i = 0; i < numOfProjectorGroup; i++) {
+		int numOfImageGroup;
+		Utilities::readNumOfImageGroup(i, numOfImageGroup);
+		for (int j = 0; j < numOfImageGroup; j++) {
+			for (int k = 1; k <= 42;) {
+				char* iphoneFileTemp = new char[iphone_file_length];
+				sprintf(iphoneFileTemp, iphone_file, count);
+				String imagesDir2 = imagesDir1 + String(iphoneFileTemp);
+				fstream f;
+				f.open(original_name.c_str());
+				if (f)
+				{
+					rename(original_name.c_str(), new_name.c_str());
+					MessageBox(NULL, TEXT("RENAME SUCCESS"), NULL, NULL);
+					f.close();
+				}
+			}
+		}
+	}
 }

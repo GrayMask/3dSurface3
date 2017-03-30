@@ -6,7 +6,7 @@ using namespace std;
 
 int main(int argh, char* argv[])
 {
-	cout << "Task List\n1. Scan with webcamera \n2. Scan with iphone \n3. Decode \n4. Match feature points \n\n Pleace select task! ";
+	cout << "Task List\n1. Scan with webcamera \n2. Scan with iphone \n3. Change iphone file name \n4. Decode \n5. Match feature points \n\n Pleace select task! ";
 
 	int select;
 	cin >> select;
@@ -25,10 +25,14 @@ int main(int argh, char* argv[])
 		break;
 		// Scan with iphone
 	case 3:
+		GrayCodePattern::changeIphoneFileName();
+		break;
+		// Scan with iphone
+	case 4:
 		Sfm::executeDecoding();
 		break;
 		// Decode
-	case 4:
+	case 5:
 		Sfm::executeMatching();
 		break;
 		// Match feature points

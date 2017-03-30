@@ -6,5 +6,7 @@ public:
 	static void getGrayCodeImages();
 
 	static void getGrayCodeImagesForIphone();
+
+	static void changeIphoneFileName();
 };
 #endif

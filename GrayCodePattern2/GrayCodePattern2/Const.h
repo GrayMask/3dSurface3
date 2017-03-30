@@ -29,6 +29,9 @@ extern const cv::String sfm_file;
 extern const cv::String shadowMask_file;
 //extern const cv::String ply_file;
 
+extern const char* iphone_file;
+extern const int iphone_file_length;
+
 extern const bool isThresh;
 extern const size_t white_thresh;
 extern const size_t black_thresh;

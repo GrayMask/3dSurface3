@@ -11,7 +11,7 @@ extern const int cam_exp = 50;
 extern const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "1";
+extern const cv::String exprNum = "2";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
@@ -29,6 +29,9 @@ extern const cv::String sfm_dir = expr_dir + "sfm_images\\";
 extern const cv::String sfm_file = sfm_dir + "d.nvm.cmvs\\00\\cameras_v2.txt";
 extern const cv::String shadowMask_file = "shadowMask";
 //extern const cv::String ply_file = "pointCloud.ply";
+
+extern const char* iphone_file = "IMG_%04d.JPG";
+extern const int iphone_file_length = 12;
 
 extern const bool isThresh = true;
 extern const size_t white_thresh = 5;
