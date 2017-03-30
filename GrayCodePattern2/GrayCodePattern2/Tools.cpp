@@ -88,7 +88,7 @@ int Tools::readGroupNumFile(cv::String filePath, int& groupNum)
 	return 1;
 }
 
-int Tools::readStringList(cv::String& filename, vector<string>& l) {
+int Tools::readStringList(cv::String& filename, vector<cv::String>& l) {
 	cv::FileStorage fs(filename, cv::FileStorage::READ);
 	if (!fs.isOpened())
 	{
@@ -208,17 +208,17 @@ void Tools::saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, cv::Str
 	ouF.close();
 }
 
-void Tools::loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels, cv::String path) {
+void Tools::loadCamsPixelsForReconstuction(vector<vector<cv::Point2f>>& camPixels, cv::String path) {
 	ifstream inF;
 	inF.open(path.c_str());
 	int sz = proj_width * proj_height;
 	camPixels.resize(0);
 	//camPixels = new vector<cv::Point>[sz];
 	string line;
-	int x;
-	int y;
+	float x;
+	float y;
 	for (int i = 0; i < sz; i++) {
-		vector<cv::Point> points;
+		vector<cv::Point2f> points;
 		points.resize(0);
 		while (1) {
 			inF >> x;
@@ -226,7 +226,7 @@ void Tools::loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels,
 				break;
 			}
 			inF >> y;
-			cv::Point point(x, y);
+			cv::Point2f point(x, y);
 			points.push_back(point);
 		}
 		camPixels.push_back(points);

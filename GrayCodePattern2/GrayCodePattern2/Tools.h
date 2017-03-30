@@ -13,7 +13,7 @@ public:
 
 	static int readGroupNumFile(cv::String filePath, int& groupNum);
 
-	static int readStringList(cv::String& filename, vector<string>& l);
+	static int readStringList(cv::String& filename, vector<cv::String>& l);
 
 	static int getSFMResult(const int count, cv::Mat& R, cv::Mat& T);
 
@@ -21,6 +21,6 @@ public:
 
 	static void saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, cv::String path);
 
-	static void loadCamsPixelsForReconstuction(vector<vector<cv::Point>>& camPixels, cv::String path);
+	static void loadCamsPixelsForReconstuction(vector<vector<cv::Point2f>>& camPixels, cv::String path);
 };
 #endif

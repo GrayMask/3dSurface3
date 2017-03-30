@@ -228,23 +228,34 @@ void GrayCodePattern::changeIphoneFileName() {
 
 	int count = 856;
 	int numOfProjectorGroup;
+	String imagesDir1;
 	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
 	for (int i = 0; i < numOfProjectorGroup; i++) {
 		int numOfImageGroup;
-		Utilities::readNumOfImageGroup(i, numOfImageGroup);
+		Utilities::readNumOfImageGroup(i, numOfImageGroup, imagesDir1);
 		for (int j = 0; j < numOfImageGroup; j++) {
-			for (int k = 1; k <= 42;) {
+			vector<String> camFolder;
+			camFolder.resize(0);
+			char* imagesGroupDirTemp = new char[images_group_dir_length];
+			sprintf(imagesGroupDirTemp, images_group_dir, j);
+			cv::String imagesDir2 = imagesDir1 + cv::String(imagesGroupDirTemp);
+			cv::String filename = imagesDir2 + imagesName_file;
+			Tools::readStringList(filename, camFolder);
+			for (int k = 0; k < camFolder.size();) {
 				char* iphoneFileTemp = new char[iphone_file_length];
 				sprintf(iphoneFileTemp, iphone_file, count);
-				String imagesDir2 = imagesDir1 + String(iphoneFileTemp);
+				String imagesDirOld = imagesDir2 + String(iphoneFileTemp);
 				fstream f;
-				f.open(original_name.c_str());
+				f.open(imagesDirOld.c_str());
 				if (f)
 				{
-					rename(original_name.c_str(), new_name.c_str());
-					MessageBox(NULL, TEXT("RENAME SUCCESS"), NULL, NULL);
 					f.close();
+					String imagesDirNew = imagesDir2 + camFolder[k];
+					cout << imagesDirNew << endl;
+					int result = rename(imagesDirOld.c_str(), imagesDirNew.c_str());
+					k++;
 				}
+				count++;
 			}
 		}
 	}

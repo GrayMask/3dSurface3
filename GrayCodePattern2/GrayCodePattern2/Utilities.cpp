@@ -465,7 +465,7 @@ int Utilities::accessMat(cv::Mat m, int x, int y)
 
 }
 
-void Utilities::loadCamImgs(const cv::String rootPath, const vector<string>& imagelist, vector<cv::Mat>& captured_pattern) {
+void Utilities::loadCamImgs(const cv::String rootPath, const vector<cv::String>& imagelist, vector<cv::Mat>& captured_pattern) {
 	int numberOfPatternImages = imagelist.size();
 	captured_pattern.resize(0);
 	for (size_t i = 0; i < numberOfPatternImages; i++)
@@ -510,10 +510,18 @@ void Utilities::readShadowMask(cv::Mat& shadowMask, const int projectNum, const 
 	shadowMask = imread(imagesDir1 + shadowMask_file + numStr.str() + imgType, cv::IMREAD_GRAYSCALE) / 255;
 }
 
+void Utilities::readNumOfImageGroup(const int projectNum, int& groupNum, cv::String& dir) {
+	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	sprintf(projectorGroupDirTemp, projector_group_dir, projectNum);
+	dir = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
+	int numOfImageGroup1;
+	Tools::readGroupNumFile(dir + imageGroupNum_file, groupNum);
+}
+
 void Utilities::readNumOfImageGroup(const int projectNum, int& groupNum) {
 	char* projectorGroupDirTemp = new char[projector_group_dir_length];
 	sprintf(projectorGroupDirTemp, projector_group_dir, projectNum);
-	cv::String imagesDir1 = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
+	cv::String dir = root_dir + expr_dir + cv::String(projectorGroupDirTemp);
 	int numOfImageGroup1;
-	Tools::readGroupNumFile(imagesDir1 + imageGroupNum_file, groupNum);
+	Tools::readGroupNumFile(dir + imageGroupNum_file, groupNum);
 }
