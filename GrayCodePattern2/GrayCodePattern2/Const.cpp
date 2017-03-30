@@ -4,8 +4,8 @@
 extern const int proj_width = 1024;
 extern const int proj_height = 768;
 
-extern const int cam_width = 1280;// 1280;//800;//4896;
-extern const int cam_height = 960;// 720;//600;//3264;
+extern const int cam_width = 4032;// 1280;//800;//4896;
+extern const int cam_height = 3204;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
 extern const bool isStereoCamera = false;
