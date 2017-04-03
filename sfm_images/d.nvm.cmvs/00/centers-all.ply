@@ -1,0 +1,13 @@
+ply
+format ascii 1.0
+element vertex 3
+property float x
+property float y
+property float z
+property uchar diffuse_red
+property uchar diffuse_green
+property uchar diffuse_blue
+end_header
+0.0135651 0.000726819 0.0353181 255 0 255
+0.989088 0.10494 0.0177785 255 0 255
+1.71514 0.165723 0.0979409 255 0 255

@@ -406,3 +406,35 @@ void Sfm::executeMatching() {
 	// save match
 	saveMatch(avgCamsPixels, numOfProjectorGroup);
 }
+
+void Sfm::simplifyMatchFile() {
+	int multiple = 3;
+	ifstream inF;
+	inF.open((root_dir + sfm_dir + "match.txt").c_str());
+	ofstream ouF;
+	ouF.open((root_dir + sfm_dir + "match2.txt").c_str());
+	while (!inF.eof()) {
+		string fileA, fileB;
+		int count, temp;
+		inF >> fileA >> fileB >> count;
+		int newMulti = count < 1000 ? 1 : multiple;
+		int newCount = (count + newMulti -1) / newMulti;
+		ouF << fileA << " " << fileB << " " << newCount << "\n";
+		for (int i = 0; i < count; i++) {
+			inF >> temp;
+			if (i % newMulti == 0) {
+				ouF << temp << " ";
+			}
+		}
+		ouF << "\n";
+		for (int i = 0; i < count; i++) {
+			inF >> temp;
+			if (i % newMulti == 0) {
+				ouF << temp << " ";
+			}
+		}
+		ouF << "\n";
+	}
+	ouF.close();
+	inF.close();
+}
