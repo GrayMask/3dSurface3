@@ -8,10 +8,12 @@ extern const int cam_width = 4032;// 1280;//800;//4896;
 extern const int cam_height = 3024;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
-extern const bool isStereoCamera = false;
+extern const float periodOfEachPattern = 3.0; // second
+
+// const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "2";
+extern const cv::String exprNum = "3";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
@@ -32,6 +34,7 @@ extern const cv::String shadowMask_file = "shadowMask";
 
 extern const char* iphone_file = "IMG_%04d.JPG";
 extern const int iphone_file_length = 12;
+extern const char* iphone_vedio_file = "IMG_%04d.JPG";
 
 extern const bool isThresh = true;
 extern const size_t white_thresh = 5;

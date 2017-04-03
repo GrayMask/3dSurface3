@@ -193,24 +193,15 @@ void GrayCodePattern::getGrayCodeImagesForIphone()
 					int i = 0;
 					while (i < (int)pattern.size())
 					{
-						cout << "Waiting to save image number " << i + 1 << endl << "Press \"s\" to acquire the photo" << endl;
 						imshow("Pattern Window", pattern[i]);
-						while (1)
-						{
-							int key = waitKey(1);
-							if (key == 115) // s
-							{
-								bool save1 = false;
-								ostringstream name;
-								name << i + 1;
-								String imagesFile1 = imagesDir2 + images_file + name.str() + imgType;
-								cout << imagesFile1 << endl;
-								cout << "pattern cam1 images number " << i + 1 << " saved" << endl << endl;
-								fs1 << images_file + name.str() + imgType;
-								i++;
-								break;
-							}
-						}
+						int key = waitKey(periodOfEachPattern * 1000);
+						ostringstream name;
+						name << i + 1;
+						String imagesFile1 = imagesDir2 + images_file + name.str() + imgType;
+						cout << imagesFile1 << endl;
+						cout << "pattern cam1 images number " << i + 1 << " saved" << endl << endl;
+						fs1 << images_file + name.str() + imgType;
+						i++;
 					}
 					fs1 << "]";
 					//destroyWindow("cam1");
@@ -256,6 +247,37 @@ void GrayCodePattern::changeIphoneFileName() {
 					k++;
 				}
 				count++;
+			}
+		}
+	}
+}
+
+void GrayCodePattern::getFrameFromVedio() {
+	int numOfProjectorGroup;
+	String imagesDir1;
+	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
+	Mat frame;
+	for (int i = 0; i < numOfProjectorGroup; i++) {
+		int numOfImageGroup;
+		Utilities::readNumOfImageGroup(i, numOfImageGroup, imagesDir1);
+		for (int j = 0; j < numOfImageGroup; j++) {
+			vector<String> camFolder;
+			camFolder.resize(0);
+			char* imagesGroupDirTemp = new char[images_group_dir_length];
+			sprintf(imagesGroupDirTemp, images_group_dir, j);
+			String imagesDir2 = imagesDir1 + String(imagesGroupDirTemp);
+			String filename = imagesDir2 + imagesName_file;
+			Tools::readStringList(filename, camFolder);
+
+			cv::VideoCapture capture(imagesDir2 + iphone_vedio_file);
+			double rate = capture.get(CV_CAP_PROP_FPS);
+
+			for (int k = 0; k < camFolder.size();) {
+				float selectSecond = k * periodOfEachPattern + periodOfEachPattern / 2;
+				capture.set(CV_CAP_PROP_POS_FRAMES, selectSecond * rate);
+
+				capture.read(frame);
+				imwrite(imagesDir2 + camFolder[k], frame);
 			}
 		}
 	}

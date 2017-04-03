@@ -7,7 +7,9 @@ extern const int cam_width;
 extern const int cam_height;
 extern const int cam_exp;
 
-extern const bool isStereoCamera;
+extern const float periodOfEachPattern;
+
+//extern const bool isStereoCamera;
 
 // dir
 extern const cv::String exprNum;
@@ -31,6 +33,7 @@ extern const cv::String shadowMask_file;
 
 extern const char* iphone_file;
 extern const int iphone_file_length;
+extern const char* iphone_vedio_file;
 
 extern const bool isThresh;
 extern const size_t white_thresh;

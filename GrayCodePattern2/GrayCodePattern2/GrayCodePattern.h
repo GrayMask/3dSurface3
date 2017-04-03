@@ -8,5 +8,7 @@ public:
 	static void getGrayCodeImagesForIphone();
 
 	static void changeIphoneFileName();
+
+	static void getFrameFromVedio();
 };
 #endif
