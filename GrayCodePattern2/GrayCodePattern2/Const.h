@@ -34,6 +34,7 @@ extern const cv::String shadowMask_file;
 extern const char* iphone_file;
 extern const int iphone_file_length;
 extern const char* iphone_vedio_file;
+extern const int iphone_vedio_start_thresh;
 
 extern const bool isThresh;
 extern const size_t white_thresh;

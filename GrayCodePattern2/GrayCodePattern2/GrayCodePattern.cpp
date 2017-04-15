@@ -1,4 +1,4 @@
-#include <opencv2/highgui.hpp>
+﻿#include <opencv2/highgui.hpp>
 #include <opencv2/structured_light.hpp>
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
@@ -252,6 +252,36 @@ void GrayCodePattern::changeIphoneFileName() {
 	}
 }
 
+void getStartPointOfVedio(VideoCapture& capture, int& startFrame) {
+	startFrame = -1;
+	Mat img;
+	int m ,firstM;
+	int currentFrame = 0;
+	int frameToStop = capture.get(CV_CAP_PROP_FRAME_COUNT);
+	while (true)
+	{
+		if (!capture.read(img))
+		{
+			break;
+		}
+		cout << currentFrame << endl;
+		m = mean(img)[0];
+		cout << "Mean: " << m << endl;
+		if (currentFrame == 0) {
+			firstM = m;
+		}
+		if (currentFrame > 0 && m - firstM > iphone_vedio_start_thresh) {
+			startFrame = currentFrame;
+			break;
+		}
+		if (currentFrame > frameToStop)
+		{
+			break;
+		}
+		currentFrame++;
+	}
+}
+
 void GrayCodePattern::getFrameFromVedio() {
 	int numOfProjectorGroup;
 	String imagesDir1;
@@ -269,16 +299,20 @@ void GrayCodePattern::getFrameFromVedio() {
 			String filename = imagesDir2 + imagesName_file;
 			Tools::readStringList(filename, camFolder);
 
+			//cv::VideoCapture capture("D:\\document\\project\\3dSurface3\\code\\expr3\\projector_position00\\partten_images00\\ｖ.MOV");
 			cv::VideoCapture capture(imagesDir2 + iphone_vedio_file);
+			int startFrameNum;
+			getStartPointOfVedio(capture, startFrameNum);
 			double rate = capture.get(CV_CAP_PROP_FPS);
 
-			for (int k = 0; k < camFolder.size();) {
+			for (int k = 0; k < camFolder.size(); k++) {
 				float selectSecond = k * periodOfEachPattern + periodOfEachPattern / 2;
-				capture.set(CV_CAP_PROP_POS_FRAMES, selectSecond * rate);
+				capture.set(CV_CAP_PROP_POS_FRAMES, startFrameNum + selectSecond * rate);
 
 				capture.read(frame);
 				imwrite(imagesDir2 + camFolder[k], frame);
 			}
+			capture.release();
 		}
 	}
 }

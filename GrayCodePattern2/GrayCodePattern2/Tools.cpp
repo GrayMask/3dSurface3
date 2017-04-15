@@ -192,7 +192,7 @@ void Tools::myCalcHist(cv::Mat gray_plane)
 	cvShowImage("H-S Histogram", hist_image);
 }
 
-void Tools::saveCamsPixelsForReconstuction(vector<cv::Point> *camPixels, cv::String path) {
+void Tools::saveCamsPixelsForReconstuction(vector<vector<cv::Point>> camPixels, cv::String path) {
 	ofstream ouF;
 	ouF.open(path.c_str());
 	int sz = proj_width * proj_height;

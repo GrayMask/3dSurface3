@@ -16,7 +16,8 @@
 
 struct PointWithCode {
 	cv::Point2f point;
-	int index;
+	int indexInSiftFile;
+	int code;
 };
 
 void makeSfmDir(int const numOfProjectorGroup) {
@@ -82,8 +83,8 @@ bool getProjPixel(int x, int y, cv::Point2f &p_out, vector<cv::Mat>& captured_pa
 {
 	vector<bool> grayCol;
 	vector<bool> grayRow;
-	int numOfColBits = 10;
-	int numOfRowBits = 10;
+	int numOfColBits = log(proj_width) / log(2);
+	int numOfRowBits = log(proj_height) / log(2);
 
 	bool error = false;
 	//int error_code = 0;
@@ -187,7 +188,7 @@ void saveFeaturePoints(vector<PointWithCode>& camPixels, int num) {
 	int count = 0;
 	for (int i = 0; i < sz; i++) {
 		PointWithCode pwc = camPixels[i];
-		if (pwc.index != -1) {
+		if (pwc.indexInSiftFile != -1) {
 			ldData.push_back(pwc.point.x);
 			ldData.push_back(pwc.point.y);
 			ldData.push_back(0);
@@ -209,32 +210,71 @@ void saveFeaturePoints(vector<PointWithCode>& camPixels, int num) {
 float distanceOfTwoPoints(cv::Point2f point1, cv::Point2f point2) {
 	float xx = point1.x - point2.x;
 	float yy = point1.y - point2.y;
-	return sqrt(xx * xx + yy * yy);
+	return xx * xx + yy * yy;
 }
 
-void calcCodeMapOfTwoProjecterPosition(vector<PointWithCode>& camsPixels1, vector<PointWithCode>& camsPixels2, cv::Mat shadowMask2, map<int, int>& codeMap) {
-	int sz1 = camsPixels1.size();
-	int sz2 = camsPixels2.size();
-	shadowMask2.convertTo(shadowMask2, CV_32S);
+/* update at 20170410 for shortening mapping time*/
+void simplifyPointWithCodeVector(vector<PointWithCode>& input, vector<PointWithCode>& output, cv::Mat shadowMask) {
+	int sz = input.size();
+	for (int i = 0; i < sz; i++) {
+		PointWithCode pwc = input[i];
+		if (pwc.indexInSiftFile != -1 && Utilities::matGet2D(shadowMask, pwc.point.x, pwc.point.y) == 1) {
+			output.push_back(pwc);
+		}
+	}
+}
+
+void simplifyPointWithCodeVectorTo2d(vector<PointWithCode>& input, vector<PointWithCode>** output, cv::Mat shadowMask) {
+	int sz = input.size();
+	for (int i = 0; i < sz; i++) {
+		PointWithCode pwc = input[i];
+		if (pwc.indexInSiftFile != -1 && Utilities::matGet2D(shadowMask, pwc.point.x, pwc.point.y) == 1) {
+			int xInt = pwc.point.x;
+			int yInt = pwc.point.y;
+			output[xInt][yInt].resize(0);
+			output[xInt][yInt].push_back(input[i]);
+		}
+	}
+}
+
+void calcCodeMapOfTwoProjecterPosition(vector<PointWithCode>& camsPixels1, vector<PointWithCode>& camsPixels2, cv::Mat shadowMask1, cv::Mat shadowMask2, map<int, int>& codeMap) {
+	vector<PointWithCode> camsPixels1_;
+	vector<PointWithCode>** camsPixels2_2d = new vector<PointWithCode>*[cam_width];
+	for (int i = 0; i < cam_width; i++)
+		camsPixels2_2d[i] = new vector<PointWithCode>[cam_height];
+
+	int length = ceil(mapping_thresh);
+	int length_ = length * 2 + 1;
+	float nearestDistSquare = mapping_thresh * mapping_thresh;
+	simplifyPointWithCodeVector(camsPixels1, camsPixels1_, shadowMask2);
+	simplifyPointWithCodeVectorTo2d(camsPixels2, camsPixels2_2d, shadowMask1);
+	int sz1 = camsPixels1_.size();
+	//int sz2 = camsPixels2_.size();
 	for (int i = 0; i < sz1; i++) {
-		PointWithCode pwc1 = camsPixels1[i];
-		if (pwc1.index != -1 && Utilities::matGet2D(shadowMask2 ,pwc1.point.x, pwc1.point.y) == 1) {
-			float nearestDist = mapping_thresh;
-			for (int j = 0; j < sz2; j++) {
-				PointWithCode pwc2 = camsPixels2[j];
-				if (pwc2.index != -1) {
-					float dist = distanceOfTwoPoints(pwc1.point, pwc2.point);
-					if (dist < nearestDist) {
-						codeMap[i] = j;
-						nearestDist = dist;
-						if (dist == 0) {
-							break;
+		PointWithCode pwc1 = camsPixels1_[i];
+		float nearestDist = nearestDistSquare;
+		for (int j = 0; j < length_; j++) {
+			for (int k = 0; k < length_; k++) {
+				int xInt = pwc1.point.x - length + j;
+				int yInt = pwc1.point.y - length + k;
+				if (xInt >= 0 && xInt < cam_width && yInt >= 0 && yInt < cam_height && camsPixels2_2d[xInt][yInt].size() > 0) {
+					vector<PointWithCode> pwcVec = camsPixels2_2d[xInt][yInt];
+					for (PointWithCode pwc2 : pwcVec) {
+						float dist = distanceOfTwoPoints(pwc1.point, pwc2.point);
+						if (dist < nearestDist) {
+							codeMap[pwc1.code] = pwc2.code;
+							nearestDist = dist;
 						}
 					}
 				}
 			}
 		}
 	}
+	for (int i = 0; i < cam_width; i++)
+	{
+		delete[] camsPixels2_2d[i];
+	}
+	delete camsPixels2_2d;
 }
 
 void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
@@ -247,9 +287,13 @@ void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
 		Utilities::readNumOfImageGroup(p, numOfImageGroup1);
 		Utilities::readNumOfImageGroup(p + 1, numOfImageGroup2);
 		map<int, int> codeMap;
-		cv::Mat shadowMask;
-		Utilities::readShadowMask(shadowMask, p+1, 0);
-		calcCodeMapOfTwoProjecterPosition(camsPixels[p][numOfImageGroup1-1], camsPixels[p+1][0], shadowMask, codeMap);
+		cv::Mat shadowMask1;
+		cv::Mat shadowMask2;
+		Utilities::readShadowMask(shadowMask1, p, numOfImageGroup1 - 1);
+		Utilities::readShadowMask(shadowMask2, p+1, 0);
+		cout << "Calculating Code Map Of Two Projecter Position " << p << " and " << p+1 << " ..." << endl;
+		calcCodeMapOfTwoProjecterPosition(camsPixels[p][numOfImageGroup1-1], camsPixels[p+1][0], shadowMask1, shadowMask2, codeMap);
+		cout << "End" << endl;
 		int sizeOfLastOfProjectorGroup1 = camsPixels[p][numOfImageGroup1 - 1].size();
 		for (int i = 0; i < numOfImageGroup1 + numOfImageGroup2 - 2; i++) {
 			for (int j = i + 1; j < numOfImageGroup1 + numOfImageGroup2 -1; j++) {
@@ -265,7 +309,7 @@ void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
 				int sz = camPixels1.size();
 				for (int k = 0; k < sz; k++) {
 					PointWithCode pwc1 = camPixels1[k];
-					if (pwc1.index != -1) {
+					if (pwc1.indexInSiftFile != -1) {
 						int codeFin = k;
 						if (numI != numJ) {
 							map<int, int>::iterator iter;
@@ -277,9 +321,9 @@ void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
 								continue;
 							}
 						}
-						int idx2 = camPixels2[codeFin].index;
+						int idx2 = camPixels2[codeFin].indexInSiftFile;
 						if (idx2 != -1) {
-							matches[0].push_back(pwc1.index);
+							matches[0].push_back(pwc1.indexInSiftFile);
 							matches[1].push_back(idx2);
 						}
 					}
@@ -302,6 +346,80 @@ void saveMatch(vector<PointWithCode> **camsPixels, int numOfProjectorGroup) {
 	std::cout << "Save Match end" << endl;
 }
 
+bool getProjPixel_v2(cv::InputArrayOfArrays patternImages, int x, int y, cv::Point &projPix)
+{
+	std::vector<cv::Mat>& _patternImages = *(std::vector<cv::Mat>*) patternImages.getObj();
+	std::vector<uchar> grayCol;
+	std::vector<uchar> grayRow;
+	int numOfColBits = log(proj_width) / log(2);
+	int numOfRowBits = log(proj_height) / log(2);
+	bool error = false;
+	int xDec, yDec;
+	// process column images
+	for (size_t count = 0; count < numOfColBits; count++)
+	{
+		// get pixel intensity for regular pattern projection and its inverse
+		double val1 = _patternImages[count * 2].at<uchar>(cv::Point(x, y));
+		double val2 = _patternImages[count * 2 + 1].at<uchar>(cv::Point(x, y));
+		// check if the intensity difference between the values of the normal and its inverse projection image is in a valid range
+		if (abs(val1 - val2) < white_thresh)
+			error = true;
+		// determine if projection pixel is on or off
+		if (val1 > val2)
+			grayCol.push_back(1);
+		else
+			grayCol.push_back(0);
+	}
+	xDec = Utilities::grayToDec_v2(grayCol);
+	// process row images
+	for (size_t count = 0; count < numOfRowBits; count++)
+	{
+		// get pixel intensity for regular pattern projection and its inverse
+		double val1 = _patternImages[count * 2 + numOfColBits * 2].at<uchar>(cv::Point(x, y));
+		double val2 = _patternImages[count * 2 + numOfColBits * 2 + 1].at<uchar>(cv::Point(x, y));
+		// check if the intensity difference between the values of the normal and its inverse projection image is in a valid range
+		if (abs(val1 - val2) < white_thresh)
+			error = true;
+		// determine if projection pixel is on or off
+		if (val1 > val2)
+			grayRow.push_back(1);
+		else
+			grayRow.push_back(0);
+	}
+	yDec = Utilities::grayToDec_v2(grayRow);
+	if ((yDec >= proj_height || xDec >= proj_width))
+	{
+		error = true;
+	}
+	projPix.x = xDec;
+	projPix.y = yDec;
+	return error;
+}
+
+void decode(cv::Mat& shadowMask, vector<cv::Mat>& captured_pattern, vector<vector<cv::Point>>& camPixels)
+{
+	cv::Point projPixel;
+	// Storage for the pixels of the two cams that correspond to the same pixel of the projector
+	camPixels.resize(proj_width * proj_height);
+	for (int i = 0; i < cam_width; i++)
+	{
+		for (int j = 0; j < cam_height; j++)
+		{
+			//if the pixel is not shadowed, reconstruct
+			if (shadowMask.at<uchar>(j, i))
+			{
+				//for a (x,y) pixel of the camera returns the corresponding projector pixel by calculating the decimal number
+				bool error = getProjPixel_v2(captured_pattern, i, j, projPixel);
+				if (error)
+				{
+					continue;
+				}
+				camPixels[projPixel.x * proj_height + projPixel.y].push_back(cv::Point(i, j));
+			}
+		}
+	}
+}
+
 void matchFeaturePoints(int const numOfProjectorGroup) {
 	cv::String imagesDir1;
 	int numOfImageGroup;
@@ -312,7 +430,7 @@ void matchFeaturePoints(int const numOfProjectorGroup) {
 		{
 			ostringstream numStr;
 			numStr << j;
-			vector<cv::Point>* camsPixels = new vector<cv::Point>[proj_width * proj_height];
+			vector<vector<cv::Point>> camsPixels;
 			vector<cv::String> camFolder;
 			camFolder.resize(0);
 			char* imagesGroupDirTemp = new char[images_group_dir_length];
@@ -326,13 +444,13 @@ void matchFeaturePoints(int const numOfProjectorGroup) {
 			computeShadows(shadowMask, captured_pattern[numOfIimg - 2], captured_pattern[numOfIimg - 1]);
 			Utilities::writeShadowMask(shadowMask, imagesDir1 + shadowMask_file + numStr.str() + imgType);
 
-			decodePaterns(shadowMask, captured_pattern, camsPixels);
+			//decodePaterns(shadowMask, captured_pattern, camsPixels);
+			decode(shadowMask, captured_pattern, camsPixels);
 			Tools::saveCamsPixelsForReconstuction(camsPixels, imagesDir1 + numStr.str() + decodefileType);
-			delete[] camsPixels;
+			//delete[] camsPixels;
 			delete[] imagesGroupDirTemp;
 		}
 	}
-
 }
 void Sfm::executeDecoding() {
 	int numOfProjectorGroup;
@@ -370,12 +488,13 @@ void Sfm::executeMatching() {
 						avg += camsPixels[n][m];
 					}
 					avg /= numOFPoint;
-					pwc.index = idx;
+					pwc.indexInSiftFile = idx;
 					pwc.point = avg;
+					pwc.code = n;
 					idx++;
 				}
 				else {
-					pwc.index = -1;
+					pwc.indexInSiftFile = -1;
 				}
 				avgCamsPixels[i][j].push_back(pwc);
 			}

@@ -497,6 +497,24 @@ int Utilities::grayToDec(vector<bool> gray)
 	return dec;
 }
 
+// Converts a gray code sequence (~ binary number) to a decimal number
+int Utilities::grayToDec_v2(const std::vector<uchar>& gray)
+{
+	int dec = 0;
+	uchar tmp = gray[0];
+	if (tmp)
+		dec += (int)pow((float)2, int(gray.size() - 1));
+
+	for (int i = 1; i < (int)gray.size(); i++)
+	{
+		// XOR operation
+		tmp = tmp ^ gray[i];
+		if (tmp)
+			dec += (int)pow((float)2, int(gray.size() - i - 1));
+	}
+	return dec;
+}
+
 void Utilities::writeShadowMask(cv::Mat& shadowMask, const cv::String& fname) {
 	imwrite(fname, shadowMask * 255);
 }

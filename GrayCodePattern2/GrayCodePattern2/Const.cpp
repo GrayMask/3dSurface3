@@ -4,11 +4,11 @@
 extern const int proj_width = 1024;
 extern const int proj_height = 768;
 
-extern const int cam_width = 4032;// 1280;//800;//4896;
-extern const int cam_height = 3024;// 720;//600;//3264;
+extern const int cam_width = 1920;//1920;//4032;// 1280;//800;//4896;
+extern const int cam_height = 1080;//1080;//3024;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
-extern const float periodOfEachPattern = 3.0; // second
+extern const float periodOfEachPattern = 2.0; // second
 
 // const bool isStereoCamera = false;
 
@@ -34,7 +34,8 @@ extern const cv::String shadowMask_file = "shadowMask";
 
 extern const char* iphone_file = "IMG_%04d.JPG";
 extern const int iphone_file_length = 12;
-extern const char* iphone_vedio_file = "IMG_%04d.JPG";
+extern const char* iphone_vedio_file = "v.MOV";
+extern const int iphone_vedio_start_thresh = 10;
 
 extern const bool isThresh = true;
 extern const size_t white_thresh = 5;
