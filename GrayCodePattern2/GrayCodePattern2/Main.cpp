@@ -42,7 +42,5 @@ int main(int argh, char* argv[])
 		// Simplify match file
 	}
 	system("time");
-	std::cout << "\nPress any key to exit.";
-	cin >> select;
 	return 1;
 }

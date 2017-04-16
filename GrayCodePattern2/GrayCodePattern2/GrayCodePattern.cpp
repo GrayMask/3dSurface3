@@ -306,7 +306,7 @@ void GrayCodePattern::getFrameFromVedio() {
 			double rate = capture.get(CV_CAP_PROP_FPS);
 
 			for (int k = 0; k < camFolder.size(); k++) {
-				float selectSecond = k * periodOfEachPattern + periodOfEachPattern / 2;
+				float selectSecond = k * periodOfEachPattern + periodOfEachPattern * thePositionInPeriod;
 				capture.set(CV_CAP_PROP_POS_FRAMES, startFrameNum + selectSecond * rate);
 
 				capture.read(frame);

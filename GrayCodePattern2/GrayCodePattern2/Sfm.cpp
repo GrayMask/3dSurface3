@@ -536,7 +536,7 @@ void Sfm::simplifyMatchFile() {
 		string fileA, fileB;
 		int count, temp;
 		inF >> fileA >> fileB >> count;
-		int newMulti = count < 1000 ? 1 : multiple;
+		int newMulti = count < 20000 ? 1 : multiple;
 		int newCount = (count + newMulti -1) / newMulti;
 		ouF << fileA << " " << fileB << " " << newCount << "\n";
 		for (int i = 0; i < count; i++) {

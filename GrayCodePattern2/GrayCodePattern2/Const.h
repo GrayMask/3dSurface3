@@ -7,6 +7,7 @@ extern const int cam_width;
 extern const int cam_height;
 extern const int cam_exp;
 
+extern const float thePositionInPeriod;
 extern const float periodOfEachPattern;
 
 //extern const bool isStereoCamera;
