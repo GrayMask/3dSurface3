@@ -5,6 +5,12 @@ using namespace std;
 class Tools
 {
 public:
+	struct PointWithCode {
+		cv::Point2f point;
+		int indexInSiftFile;
+		int code;
+	};
+
 	static int copyFile(const cv::String fromName, const cv::String toName);
 
 	static int writePic(const cv::Mat& im, const cv::String& fname);
@@ -19,8 +25,8 @@ public:
 
 	static void myCalcHist(cv::Mat gray_plane);
 
-	static void saveCamsPixelsForReconstuction(vector<vector<cv::Point>> camPixels, cv::String path);
+	static void saveCamsPixelsForReconstuction(vector<PointWithCode> camPixels, cv::String path);
 
-	static void loadCamsPixelsForReconstuction(vector<vector<cv::Point2f>>& camPixels, cv::String path);
+	static void loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv::String path, int& lastIdx);
 };
 #endif

@@ -14,7 +14,7 @@ extern const float periodOfEachPattern = 1.0; // second
 // const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "4";
+extern const cv::String exprNum = "3";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;

@@ -1,5 +1,6 @@
 #include "GrayCodePattern.h"
 #include "Sfm.h"
+#include "Decode.h"
 #include <iostream>
 #include <opencv2/core.hpp>
 using namespace std;
@@ -29,7 +30,7 @@ int main(int argh, char* argv[])
 		break;
 		// Get frame from vedio
 	case 4:
-		Sfm::executeDecoding();
+		Decode::executeDecoding();
 		break;
 		// Decode
 	case 5:
