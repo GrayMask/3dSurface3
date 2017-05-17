@@ -30,6 +30,7 @@ extern const cv::String imgType = ".jpg";
 extern const cv::String decodefileType = ".pxl";
 extern const cv::String sfm_dir = expr_dir + "sfm_images\\";
 extern const cv::String sfm_file = sfm_dir + "d.nvm.cmvs\\00\\cameras_v2.txt";
+extern const cv::String nvm_file = sfm_dir + "d.nvm";
 extern const cv::String shadowMask_file = "shadowMask";
 //extern const cv::String ply_file = "pointCloud.ply";
 

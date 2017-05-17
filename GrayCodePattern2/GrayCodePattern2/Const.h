@@ -29,6 +29,7 @@ extern const cv::String imgType;
 extern const cv::String decodefileType;
 extern const cv::String sfm_dir;
 extern const cv::String sfm_file;
+extern const cv::String nvm_file;
 extern const cv::String shadowMask_file;
 //extern const cv::String ply_file;
 

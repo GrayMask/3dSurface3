@@ -25,6 +25,10 @@ public:
 
 	static void myCalcHist(cv::Mat gray_plane);
 
+	static bool goWithLine(ifstream & in, int line);
+
+	static bool goWithStep(ifstream & in, int step);
+
 	static void saveCamsPixelsForReconstuction(vector<PointWithCode> camPixels, cv::String path);
 
 	static void loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv::String path, int& lastIdx);

@@ -109,13 +109,29 @@ int Tools::readStringList(cv::String& filename, vector<cv::String>& l) {
 	return 1;
 }
 
-bool goWithLine(ifstream & in, int line)
+bool Tools::goWithLine(ifstream & in, int line)
 {
 	int i;
 	char buf[1024];
 	for (i = 0; i < line; i++)
 	{
 		if (!in.getline(buf, sizeof(buf))) {
+			return false;
+		}
+	}
+	return true;
+}
+
+bool Tools::goWithStep(ifstream & in, int step)
+{
+	int i;
+	char buf[1024];
+	for (i = 0; i < step; i++)
+	{
+		try{
+			in >> buf;
+		}
+		catch (exception &e) {
 			return false;
 		}
 	}

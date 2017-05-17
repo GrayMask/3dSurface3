@@ -1,13 +1,16 @@
 #include "GrayCodePattern.h"
 #include "Sfm.h"
 #include "Decode.h"
+#include "LoopClosing.h"
 #include <iostream>
 #include <opencv2/core.hpp>
 using namespace std;
 
 int main(int argh, char* argv[])
 {
-	cout << "Task List\n1. Scan with webcamera \n2. Scan with iphone \n3. Get frame from vedio \n4. Decode \n5. Match feature points \n6. Simplify match file \n\n Pleace select task! ";
+	cout << "Task List\n1. Scan with webcamera \n2. Scan with iphone \n"<<
+		"3. Get frame from vedio \n4. Decode \n5. Match feature points \n"<<
+		"6. Simplify match file \n7. Close loop \n\n Pleace select task! ";
 
 	int select;
 	cin >> select;
@@ -39,6 +42,10 @@ int main(int argh, char* argv[])
 		// Match feature points
 	case 6:
 		Sfm::simplifyMatchFile();
+		break;
+		// Simplify match file
+	case 7:
+		LoopClosing::loopClose();
 		break;
 		// Simplify match file
 	}
