@@ -32,5 +32,7 @@ public:
 	static void saveCamsPixelsForReconstuction(vector<PointWithCode> camPixels, cv::String path);
 
 	static void loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv::String path, int& lastIdx);
+
+	static void getAllFiles(cv::String path, vector<cv::String>& files);
 };
 #endif

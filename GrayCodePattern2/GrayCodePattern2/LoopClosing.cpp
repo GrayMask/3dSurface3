@@ -1,20 +1,10 @@
-﻿#include <pcl/io/pcd_io.h>
-#include <ctime>
-#include <Eigen/Core>
+﻿#include <ctime>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
-#include <pcl/features/fpfh.h>
 #include <pcl/registration/ia_ransac.h>
 #include <pcl/features/normal_3d.h>
-#include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/visualization/pcl_visualizer.h>
-#include <boost/thread/thread.hpp>
 #include <pcl/features/fpfh_omp.h>
-#include <pcl/registration/correspondence_estimation.h>
-#include <pcl/registration/correspondence_rejection_features.h>
-#include <pcl/registration/correspondence_rejection_sample_consensus.h>
-#include <pcl/filters/voxel_grid.h>
-#include <pcl/filters/approximate_voxel_grid.h>
 #include "LoopClosing.h"
 #include "Tools.h"
 #include "Const.h"
@@ -25,7 +15,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> pointcloud;
 typedef pcl::PointCloud<pcl::Normal> pointnormal;
 typedef pcl::PointCloud<pcl::FPFHSignature33> fpfhFeature;
 
-bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int> featureIdxList1, vector<int> featureIdxList2) {
+bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int& endImgIdx) {
 	ifstream in(root_dir + nvm_file);
 	if (!in.is_open())
 	{
@@ -38,6 +28,7 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int> fea
 	double x, y, z;
 	if (Tools::goWithLine(in, 2)) {
 		in >> imageMount;
+		endImgIdx = imageMount - 1;
 		if (Tools::goWithLine(in, imageMount + 2)) {
 			in >> pointMount;
 			for (int i = 0; i < pointMount; i++) {
@@ -51,7 +42,7 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int> fea
 						cloud1->push_back(pcl::PointXYZ(x, y, z));
 						featureIdxList1.push_back(featureIdx);
 					}
-					else if(imageIdx == imageMount - 1) {
+					else if(imageIdx == endImgIdx) {
 						cloud2->push_back(pcl::PointXYZ(x, y, z));
 						featureIdxList2.push_back(featureIdx);
 					}
@@ -90,36 +81,29 @@ fpfhFeature::Ptr compute_fpfh_feature(pointcloud::Ptr input_cloud, pcl::search::
 }
 
 
-int threeDpointMatching()
+int threeDpointMatching(pointcloud::Ptr source, pointcloud::Ptr target, boost::shared_ptr<pcl::Correspondences> cru_correspondences)
 {
 	clock_t start, end, time;
 	start = clock();
-	pointcloud::Ptr source(new pointcloud);
-	pointcloud::Ptr target(new pointcloud);
-	cout<<source->width;
-	vector<int> featureIdxList1;
-	vector<int> featureIdxList2;
-	readNvmFile(source, target, featureIdxList1, featureIdxList2);
+
 	cout << source->width;
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
 
 	fpfhFeature::Ptr source_fpfh = compute_fpfh_feature(source, tree);
 	fpfhFeature::Ptr target_fpfh = compute_fpfh_feature(target, tree);
 
-	////对齐(占用了大部分运行时间)
 	//pcl::SampleConsensusInitialAlignment<pcl::PointXYZ, pcl::PointXYZ, pcl::FPFHSignature33> sac_ia;
 	//sac_ia.setInputSource(source);
 	//sac_ia.setSourceFeatures(source_fpfh);
 	//sac_ia.setInputTarget(target);
 	//sac_ia.setTargetFeatures(target_fpfh);
 	//pointcloud::Ptr align(new pointcloud);
-	////  sac_ia.setNumberOfSamples(20);  //设置每次迭代计算中使用的样本数量（可省）,可节省时间
-	//sac_ia.setCorrespondenceRandomness(6); //设置计算协方差时选择多少近邻点，该值越大，协防差越精确，但是计算效率越低.(可省)
+	////  sac_ia.setNumberOfSamples(20);  
+	//sac_ia.setCorrespondenceRandomness(6); 
 	//sac_ia.align(*align);
 
 	pcl::registration::CorrespondenceEstimation<pcl::FPFHSignature33, pcl::FPFHSignature33> crude_cor_est;
 
-	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
 	crude_cor_est.setInputSource(source_fpfh);
 	crude_cor_est.setInputTarget(target_fpfh);
 	//  crude_cor_est.determineCorrespondences(cru_correspondences);
@@ -129,7 +113,6 @@ int threeDpointMatching()
 	end = clock();
 	cout << "calculate time is: " << float(end - start) / CLOCKS_PER_SEC << endl;
 
-	//可视化
 	boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("fpfh test"));
 	int v1;
 	//int v2;
@@ -150,7 +133,7 @@ int threeDpointMatching()
 	//view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "aligend_cloud_v2");
 	//view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "target_cloud_v2");
 
-	view->addCorrespondences<pcl::PointXYZ>(source,target,*cru_correspondences,"correspondence",v1);//添加显示对应点对
+	view->addCorrespondences<pcl::PointXYZ>(source,target,*cru_correspondences,"correspondence",v1);
 	while (!view->wasStopped())
 	{
 		// view->spin();
@@ -165,10 +148,38 @@ int threeDpointMatching()
 	return 0;
 }
 
+void outputMatches(boost::shared_ptr<pcl::Correspondences> cru_correspondences, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int endImgIdx) {
+	int sz = cru_correspondences->size();
+	ofstream ouF(root_dir + sfm_dir + "match.txt", ios::app);
+	ouF << "0" << imgType << " " << endImgIdx << imgType << " " << sz << "\n";
+	vector<int> matches[2];
+	matches[0].resize(0);
+	matches[1].resize(0);
+	for (int i = 0; i < sz; i++) {
+		int sourceI = cru_correspondences->at(i).index_query;
+		int targetI = cru_correspondences->at(i).index_match;
+		matches[0].push_back(featureIdxList1[sourceI]);
+		matches[1].push_back(featureIdxList2[targetI]);
+	}
+	int matchSz = matches[0].size();
+	for (int k = 0; k < 2; k++) {
+		for (int l = 0; l < matchSz; l++) {
+			ouF << matches[k][l] << " ";
+		}
+		ouF << "\n";
+	}
+}
+
 void LoopClosing::loopClose()
 {
-	threeDpointMatching();
-
-
+	pointcloud::Ptr source(new pointcloud);
+	pointcloud::Ptr target(new pointcloud);
+	vector<int> featureIdxList1;
+	vector<int> featureIdxList2;
+	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
+	int endImgIdx;
+	readNvmFile(source, target, featureIdxList1, featureIdxList2, endImgIdx);
+	threeDpointMatching(source, target, cru_correspondences);
+	outputMatches(cru_correspondences, featureIdxList1, featureIdxList2, endImgIdx);
 }
 

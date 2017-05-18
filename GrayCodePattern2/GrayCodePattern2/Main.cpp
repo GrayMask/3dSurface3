@@ -17,7 +17,6 @@ int main(int argh, char* argv[])
 
 	//clear console
 	system("cls");
-	system("time");
 	switch (select)
 	{
 	case 1:
@@ -49,6 +48,5 @@ int main(int argh, char* argv[])
 		break;
 		// Simplify match file
 	}
-	system("time");
 	return 1;
 }

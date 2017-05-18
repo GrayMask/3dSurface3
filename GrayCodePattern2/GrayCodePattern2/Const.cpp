@@ -9,12 +9,12 @@ extern const int cam_height = 1080;//1080;//3024;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
 extern const float thePositionInPeriod = 0.75; // percent, the sample position in a period of pattern
-extern const float periodOfEachPattern = 1.0; // second
+extern const float periodOfEachPattern = 0.5; // second
 
 // const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "3";
+extern const cv::String exprNum = "5";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
@@ -34,9 +34,10 @@ extern const cv::String nvm_file = sfm_dir + "d.nvm";
 extern const cv::String shadowMask_file = "shadowMask";
 //extern const cv::String ply_file = "pointCloud.ply";
 
-extern const char* iphone_file = "IMG_%04d.JPG";
-extern const int iphone_file_length = 12;
-extern const char* iphone_vedio_file = "v.MOV";
+//extern const char* iphone_file = "IMG_%04d.JPG";
+//extern const int iphone_file_length = 12;
+extern const char* new_iphone_vedio_file = "v.MOV";
+extern const cv::String iphone_video_dir = "v\\";
 extern const int iphone_vedio_start_thresh = 5;
 
 extern const bool isThresh = true;

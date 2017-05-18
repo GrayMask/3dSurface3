@@ -3,6 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <opencv2/core.hpp>;
+#include <io.h> 
 #include "Tools.h"
 #include "Const.h"
 #include "Path.h"
@@ -250,4 +251,20 @@ void Tools::loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv:
 		camPixels.push_back(pwc);
 	}
 	inF.close();
+}
+
+/*Get all file names of a dir*/
+void Tools::getAllFiles(cv::String path, vector<cv::String>& files)
+{
+	long   hFile = 0;
+	struct _finddata_t fileinfo;
+	cv::String p;
+	if ((hFile = _findfirst((p+path+"*").c_str(), &fileinfo)) != -1)
+	{
+		do
+		{
+			files.push_back(p+path+fileinfo.name);
+		} while (_findnext(hFile, &fileinfo) == 0);
+		_findclose(hFile);
+	}
 }
