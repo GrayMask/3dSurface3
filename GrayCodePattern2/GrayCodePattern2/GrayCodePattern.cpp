@@ -224,9 +224,9 @@ void getStartPointOfVedio(VideoCapture& capture, int& startFrame) {
 		{
 			break;
 		}
-		cout << currentFrame << endl;
+		//cout << currentFrame << endl;
 		m = mean(img)[0];
-		cout << "Mean: " << m << endl;
+		//cout << "Mean: " << m << endl;
 		if (currentFrame == 0) {
 			firstM = m;
 		}

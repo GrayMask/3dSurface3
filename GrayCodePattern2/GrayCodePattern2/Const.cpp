@@ -36,7 +36,8 @@ extern const cv::String shadowMask_file = "shadowMask";
 
 //extern const char* iphone_file = "IMG_%04d.JPG";
 //extern const int iphone_file_length = 12;
-extern const char* new_iphone_vedio_file = "v.MOV";
+extern const cv::String iphone_vedio_type = ".mov";
+extern const cv::String new_iphone_vedio_file = "v" + iphone_vedio_type;
 extern const cv::String iphone_video_dir = "v\\";
 extern const int iphone_vedio_start_thresh = 5;
 
@@ -47,6 +48,9 @@ extern const size_t black_thresh = 40;
 extern const float mapping_thresh = 0.5;
 
 extern const cv::Point nullPoint = -1;
+
+// loop closing
+extern const double initial_max_distance_thresh = 0.02;
 
 //extern const bool isRemap = true;
 

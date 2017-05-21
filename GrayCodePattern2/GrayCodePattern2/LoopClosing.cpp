@@ -1,4 +1,5 @@
 ﻿#include <ctime>
+#include <opencv2/core.hpp>
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl/registration/ia_ransac.h>
@@ -15,7 +16,7 @@ typedef pcl::PointCloud<pcl::PointXYZ> pointcloud;
 typedef pcl::PointCloud<pcl::Normal> pointnormal;
 typedef pcl::PointCloud<pcl::FPFHSignature33> fpfhFeature;
 
-bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int& endImgIdx) {
+bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int startImgIdx, int& endImgIdx) {
 	ifstream in(root_dir + nvm_file);
 	if (!in.is_open())
 	{
@@ -38,7 +39,7 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& fe
 				for (int j = 0; j < featureMount; j++) {
 					in >> imageIdx >> featureIdx;
 					Tools::goWithStep(in, 2);
-					if (imageIdx == 0) {
+					if (imageIdx == startImgIdx) {
 						cloud1->push_back(pcl::PointXYZ(x, y, z));
 						featureIdxList1.push_back(featureIdx);
 					}
@@ -57,18 +58,17 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& fe
 
 fpfhFeature::Ptr compute_fpfh_feature(pointcloud::Ptr input_cloud, pcl::search::KdTree<pcl::PointXYZ>::Ptr tree)
 {
-	//法向量
 	pointnormal::Ptr point_normal(new pointnormal);
 	pcl::NormalEstimation<pcl::PointXYZ, pcl::Normal> est_normal;
 	est_normal.setInputCloud(input_cloud);
 	est_normal.setSearchMethod(tree);
 	est_normal.setKSearch(10);
 	est_normal.compute(*point_normal);
-	//fpfh 估计
+	//fpfh 
 	fpfhFeature::Ptr fpfh(new fpfhFeature);
 	//pcl::FPFHEstimation<pcl::PointXYZ,pcl::Normal,pcl::FPFHSignature33> est_target_fpfh;
 	pcl::FPFHEstimationOMP<pcl::PointXYZ, pcl::Normal, pcl::FPFHSignature33> est_fpfh;
-	est_fpfh.setNumberOfThreads(4); //指定4核计算
+	est_fpfh.setNumberOfThreads(4); //4 core
 									// pcl::search::KdTree<pcl::PointXYZ>::Ptr tree4 (new pcl::search::KdTree<pcl::PointXYZ> ());
 	est_fpfh.setInputCloud(input_cloud);
 	est_fpfh.setInputNormals(point_normal);
@@ -80,6 +80,59 @@ fpfhFeature::Ptr compute_fpfh_feature(pointcloud::Ptr input_cloud, pcl::search::
 
 }
 
+static void transformPointCloud(double t, pointcloud::Ptr input, pointcloud::Ptr output) {
+	int sz = input->size();
+	for (int i = 0; i < sz; i++) {
+		pcl::PointXYZ point = input->at(i);
+		point.z = point.z + t;
+		output->push_back(point);
+	}
+}
+
+void showCorrespondence(pointcloud::Ptr source, pointcloud::Ptr target, boost::shared_ptr<pcl::Correspondences> cru_correspondences) {
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("fpfh test"));
+	int v1;
+
+	view->createViewPort(0, 0.0, 1.0, 1.0, v1);
+	view->setBackgroundColor(0, 0, 0, v1);
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> sources_cloud_color(source, 250, 0, 0);
+	view->addPointCloud(source, sources_cloud_color, "sources_cloud_v1", v1);
+	pointcloud::Ptr targetShow(new pointcloud);
+	transformPointCloud(0.5, target, targetShow);
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> target_cloud_color(targetShow, 0, 250, 0);
+	view->addPointCloud(targetShow, target_cloud_color, "target_cloud_v1", v1);
+	view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sources_cloud_v1");
+
+	view->addCorrespondences<pcl::PointXYZ>(source, targetShow, *cru_correspondences, "correspondence", v1);
+	while (!view->wasStopped())
+	{
+		view->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
+
+double getDistance(pcl::PointXYZ& pa, pcl::PointXYZ& pb) {
+	double x_, y_, z_;
+	x_ = pa.x - pb.x;
+	y_ = pa.y - pb.y;
+	z_ = pa.z - pb.z;
+
+	return sqrt(x_*x_ + y_*y_ + z_*z_);
+}
+
+void rejectCorrespondence(pointcloud::Ptr source, pointcloud::Ptr target, boost::shared_ptr<pcl::Correspondences> cru_correspondences, boost::shared_ptr<pcl::Correspondences> output, double maxDistance) {
+	int sz = cru_correspondences->size();
+	for (int i = 0; i < sz; i++) {
+		pcl::Correspondence temp = cru_correspondences->at(i);
+		pcl::PointXYZ ps = source->at(temp.index_query);
+		pcl::PointXYZ pt = target->at(temp.index_match);
+		double d = getDistance(ps, pt);
+		if (d < maxDistance) {
+			output->push_back(temp);
+		}
+	}
+}
+
 
 int threeDpointMatching(pointcloud::Ptr source, pointcloud::Ptr target, boost::shared_ptr<pcl::Correspondences> cru_correspondences)
 {
@@ -87,64 +140,45 @@ int threeDpointMatching(pointcloud::Ptr source, pointcloud::Ptr target, boost::s
 	start = clock();
 
 	cout << source->width;
+	cout << target->width;
 	pcl::search::KdTree<pcl::PointXYZ>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZ>());
 
 	fpfhFeature::Ptr source_fpfh = compute_fpfh_feature(source, tree);
 	fpfhFeature::Ptr target_fpfh = compute_fpfh_feature(target, tree);
-
-	//pcl::SampleConsensusInitialAlignment<pcl::PointXYZ, pcl::PointXYZ, pcl::FPFHSignature33> sac_ia;
-	//sac_ia.setInputSource(source);
-	//sac_ia.setSourceFeatures(source_fpfh);
-	//sac_ia.setInputTarget(target);
-	//sac_ia.setTargetFeatures(target_fpfh);
-	//pointcloud::Ptr align(new pointcloud);
-	////  sac_ia.setNumberOfSamples(20);  
-	//sac_ia.setCorrespondenceRandomness(6); 
-	//sac_ia.align(*align);
 
 	pcl::registration::CorrespondenceEstimation<pcl::FPFHSignature33, pcl::FPFHSignature33> crude_cor_est;
 
 	crude_cor_est.setInputSource(source_fpfh);
 	crude_cor_est.setInputTarget(target_fpfh);
 	//  crude_cor_est.determineCorrespondences(cru_correspondences);
-	crude_cor_est.determineReciprocalCorrespondences(*cru_correspondences);
-	cout << "crude size is:" << cru_correspondences->size() << endl;
+	boost::shared_ptr<pcl::Correspondences> initial_correspondences(new pcl::Correspondences);
+	crude_cor_est.determineReciprocalCorrespondences(*initial_correspondences);
+	cout << "crude size is:" << initial_correspondences->size() << endl;
 
 	end = clock();
 	cout << "calculate time is: " << float(end - start) / CLOCKS_PER_SEC << endl;
 
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("fpfh test"));
-	int v1;
-	//int v2;
-
-	view->createViewPort(0, 0.0, 1.0, 1.0, v1);
-	//view->createViewPort(0.5, 0.0, 1.0, 1.0, v2);
-	view->setBackgroundColor(0, 0, 0, v1);
-	//view->setBackgroundColor(0.05, 0, 0, v2);
-	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> sources_cloud_color(source, 250, 0, 0);
-	view->addPointCloud(source, sources_cloud_color, "sources_cloud_v1", v1);
-	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> target_cloud_color(target, 0, 250, 0);
-	view->addPointCloud(target, target_cloud_color, "target_cloud_v1", v1);
-	view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sources_cloud_v1");
-
-	//pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> aligend_cloud_color(align, 255, 0, 0);
-	//view->addPointCloud(align, aligend_cloud_color, "aligend_cloud_v2", v2);
-	//view->addPointCloud(target, target_cloud_color, "target_cloud_v2", v2);
-	//view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 4, "aligend_cloud_v2");
-	//view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "target_cloud_v2");
-
-	view->addCorrespondences<pcl::PointXYZ>(source,target,*cru_correspondences,"correspondence",v1);
-	while (!view->wasStopped())
-	{
-		// view->spin();
-		view->spinOnce(100);
-		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-
-
+	double newThresh = initial_max_distance_thresh;
+	int select;
+	boost::shared_ptr<pcl::Correspondences> rejected_correspondences(new pcl::Correspondences);
+	while (true) {
+		rejectCorrespondence(source, target, initial_correspondences, rejected_correspondences, newThresh);
+		cout << "selected correspondences size is:" << rejected_correspondences->size() << endl;
+		cout << "The distance threshold is " << newThresh << endl;
+		cout << "Would change the threshold? (input 1(yes) or 0(no))" << endl;
+		showCorrespondence(source, target, rejected_correspondences);
+		cin >> select;
+		if (select == 1) {
+			cout << "Input the new threshold: " << endl;
+			cin >> newThresh;
+		}
+		else {
+			break;
+		}
 	}
 	//pcl::io::savePCDFile("crou_output.pcd", *align);
 	//  pcl::io::savePCDFile ("final_align.pcd", *final);
-
+	*cru_correspondences = *rejected_correspondences;
 	return 0;
 }
 
@@ -178,7 +212,8 @@ void LoopClosing::loopClose()
 	vector<int> featureIdxList2;
 	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
 	int endImgIdx;
-	readNvmFile(source, target, featureIdxList1, featureIdxList2, endImgIdx);
+	int startImgIdx = 0;
+	readNvmFile(source, target, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
 	threeDpointMatching(source, target, cru_correspondences);
 	outputMatches(cru_correspondences, featureIdxList1, featureIdxList2, endImgIdx);
 }

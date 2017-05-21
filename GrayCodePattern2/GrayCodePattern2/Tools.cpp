@@ -3,7 +3,7 @@
 #include <fstream>
 #include <iostream>
 #include <opencv2/core.hpp>;
-#include <io.h> 
+#include "windows.h"  
 #include "Tools.h"
 #include "Const.h"
 #include "Path.h"
@@ -253,18 +253,42 @@ void Tools::loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv:
 	inF.close();
 }
 
+struct FileData {
+	cv::String fileName;
+	FILETIME createTime;
+};
+
+bool SortByCreateTime(const FileData &v1, const FileData &v2) {
+	return CompareFileTime(&v1.createTime, &v2.createTime)==1;
+}
+
 /*Get all file names of a dir*/
 void Tools::getAllFiles(cv::String path, vector<cv::String>& files)
 {
-	long   hFile = 0;
-	struct _finddata_t fileinfo;
-	cv::String p;
-	if ((hFile = _findfirst((p+path+"*").c_str(), &fileinfo)) != -1)
+	HANDLE hFile = 0;
+	WIN32_FIND_DATA FindFileData;
+	vector<FileData> fileDatas;
+	fileDatas.resize(0);
+	WCHAR wstr[MAX_PATH] = { 0 };
+	MultiByteToWideChar(CP_ACP, 0, (path + "*" + iphone_vedio_type).c_str(), -1, wstr, sizeof(wstr));
+	hFile = FindFirstFile(wstr, &FindFileData);
+	if (hFile != INVALID_HANDLE_VALUE)
 	{
 		do
 		{
-			files.push_back(p+path+fileinfo.name);
-		} while (_findnext(hFile, &fileinfo) == 0);
-		_findclose(hFile);
+			FileData data;
+			int iLength = WideCharToMultiByte(CP_ACP, 0, FindFileData.cFileName, -1, NULL, 0, NULL, NULL);
+			char* fileNameChar = new char[iLength * sizeof(char)];
+			WideCharToMultiByte(CP_ACP, 0, FindFileData.cFileName, -1, fileNameChar, iLength, NULL, NULL);
+			data.fileName = path + fileNameChar;
+			data.createTime = FindFileData.ftCreationTime;
+			fileDatas.push_back(data);
+		} while (FindNextFile(hFile, &FindFileData));
+		FindClose(hFile);
+	}
+	std::sort(fileDatas.begin(), fileDatas.end(), SortByCreateTime);
+	int sz = fileDatas.size();
+	for (int i = 0; i < sz; i++) {
+		files.push_back(fileDatas[i].fileName);
 	}
 }

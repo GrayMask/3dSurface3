@@ -12,7 +12,7 @@
 #include <windows.h>
 #include <map>
 
-#define MAX_THREADS 6
+#define MAX_THREADS 8
 
 void makeSfmDir(int const numOfProjectorGroup) {
 	// make a new dir
@@ -204,8 +204,8 @@ DWORD WINAPI getFeaturePoints(LPVOID pM) {
 	return 0;
 }
 
-void waitThread(HANDLE hArray[]) {
-	WaitForMultipleObjects(MAX_THREADS, hArray, true, INFINITE);
+void waitThread(HANDLE hArray[], int hp= MAX_THREADS) {
+	WaitForMultipleObjects(hp, hArray, true, INFINITE);
 	for (int i = 0; i < MAX_THREADS; i++) {
 		if (hArray[i] != NULL) {
 			CloseHandle(hArray[i]);
@@ -228,11 +228,12 @@ void Decode::executeDecoding() {
 	HANDLE hArray[MAX_THREADS];
 	para p[MAX_THREADS];
 	int hp = 0;
-	for (int i = 0; i < numOfProjectorGroup; i++) {
+	int j,i;
+	for (i = 0; i < numOfProjectorGroup; i++) {
 		Utilities::readNumOfImageGroup(i, numOfImageGroup, imagesDir1);
-		for (int j = 0; j < numOfImageGroup; j++)
+		for (j = 0; j < numOfImageGroup; j++)
 		{
-			p[hp].imagesDir1 = imagesDir1;
+			p[hp].imagesDir1 = cv::String(imagesDir1.c_str());
 			p[hp].numOfGroup = j;
 			hArray[hp] = CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)getFeaturePoints, (LPVOID)&p[hp], 1, 0);
 			hp++;
@@ -242,5 +243,5 @@ void Decode::executeDecoding() {
 			}
 		}
 	}
-	waitThread(hArray);
+	waitThread(hArray, hp);
 }
