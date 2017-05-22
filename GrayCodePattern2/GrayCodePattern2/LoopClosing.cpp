@@ -6,6 +6,7 @@
 #include <pcl/features/normal_3d.h>
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/features/fpfh_omp.h>
+#include <pcl/registration/icp.h>
 #include "LoopClosing.h"
 #include "Tools.h"
 #include "Const.h"
@@ -29,7 +30,9 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& fe
 	double x, y, z;
 	if (Tools::goWithLine(in, 2)) {
 		in >> imageMount;
-		endImgIdx = imageMount - 1;
+		if (endImgIdx == NULL) {
+			endImgIdx = imageMount - 1;
+		}
 		if (Tools::goWithLine(in, imageMount + 2)) {
 			in >> pointMount;
 			for (int i = 0; i < pointMount; i++) {
@@ -182,10 +185,47 @@ int threeDpointMatching(pointcloud::Ptr source, pointcloud::Ptr target, boost::s
 	return 0;
 }
 
-void outputMatches(boost::shared_ptr<pcl::Correspondences> cru_correspondences, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int endImgIdx) {
+class MyICP : public pcl::IterativeClosestPoint<pcl::PointXYZ, pcl::PointXYZ>
+{
+public:
+	pcl::CorrespondencesPtr getCorrespondences()
+	{
+		return correspondences_;
+	}
+};
+
+int threeDpointMatchingICP(pointcloud::Ptr source, pointcloud::Ptr target, boost::shared_ptr<pcl::Correspondences> cru_correspondences)
+{
+	MyICP icp;
+	pcl::PointCloud<pcl::PointXYZ> cloud_source_registered;
+	// Set the input source and target
+	icp.setInputSource(source);
+	icp.setInputTarget(target);
+	// Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
+	icp.setMaxCorrespondenceDistance(0.01);
+	// Set the maximum number of iterations (criterion 1)
+	icp.setMaximumIterations(50);
+	// Set the transformation epsilon (criterion 2)
+	icp.setTransformationEpsilon(1e-10);
+	// Set the euclidean distance difference epsilon (criterion 3)
+	icp.setEuclideanFitnessEpsilon(1);
+	// Perform the alignment
+	icp.align(cloud_source_registered);
+	// Obtain the transformation that aligned cloud_source to cloud_source_registered
+	//Eigen::Matrix4f transformation = icp.getFinalTransformation();
+	pcl::CorrespondencesPtr temp = icp.getCorrespondences();
+	int sz = temp->size();
+	for (int i = 0; i < sz; i++) {
+		cru_correspondences->push_back(temp->at(i));
+	}
+	showCorrespondence(source, target, cru_correspondences);
+	return 0;
+}
+
+void outputMatches(boost::shared_ptr<pcl::Correspondences> cru_correspondences, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int startImgIdx, int endImgIdx) {
 	int sz = cru_correspondences->size();
 	ofstream ouF(root_dir + sfm_dir + "match.txt", ios::app);
-	ouF << "0" << imgType << " " << endImgIdx << imgType << " " << sz << "\n";
+	ouF << startImgIdx << imgType << " " << endImgIdx << imgType << " " << sz << "\n";
 	vector<int> matches[2];
 	matches[0].resize(0);
 	matches[1].resize(0);
@@ -211,10 +251,10 @@ void LoopClosing::loopClose()
 	vector<int> featureIdxList1;
 	vector<int> featureIdxList2;
 	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
-	int endImgIdx;
+	int endImgIdx = 9;
 	int startImgIdx = 0;
 	readNvmFile(source, target, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
-	threeDpointMatching(source, target, cru_correspondences);
-	outputMatches(cru_correspondences, featureIdxList1, featureIdxList2, endImgIdx);
+	//threeDpointMatching(source, target, cru_correspondences);
+	threeDpointMatchingICP(source, target, cru_correspondences);
+	outputMatches(cru_correspondences, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
 }
-
