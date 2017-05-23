@@ -8,13 +8,13 @@ extern const int cam_width = 1920;//1920;//4032;// 1280;//800;//4896;
 extern const int cam_height = 1080;//1080;//3024;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
-extern const float thePositionInPeriod = 0.75; // percent, the sample position in a period of pattern
-extern const float periodOfEachPattern = 0.5; // second
+extern const float thePositionInPeriod = 0.5; // percent, the sample position in a period of pattern
+extern const float periodOfEachPattern = 0.1; // second
 
 // const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "5";
+extern const cv::String exprNum = "6";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;

@@ -11,6 +11,7 @@
 #include "Tools.h"
 #include "Const.h"
 #include "Path.h"
+#include "Utilities.h"
 
 using namespace std;
 typedef pcl::PointCloud<pcl::PointXYZ> pointcloud;
@@ -30,7 +31,7 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& fe
 	double x, y, z;
 	if (Tools::goWithLine(in, 2)) {
 		in >> imageMount;
-		if (endImgIdx == NULL) {
+		if (endImgIdx > imageMount -1 || endImgIdx < 0) {
 			endImgIdx = imageMount - 1;
 		}
 		if (Tools::goWithLine(in, imageMount + 2)) {
@@ -107,6 +108,25 @@ void showCorrespondence(pointcloud::Ptr source, pointcloud::Ptr target, boost::s
 	view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sources_cloud_v1");
 
 	view->addCorrespondences<pcl::PointXYZ>(source, targetShow, *cru_correspondences, "correspondence", v1);
+	while (!view->wasStopped())
+	{
+		view->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
+
+void showCorrespondence(pointcloud::Ptr source, pointcloud::Ptr target) {
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> view(new pcl::visualization::PCLVisualizer("fpfh test"));
+	int v1;
+
+	view->createViewPort(0, 0.0, 1.0, 1.0, v1);
+	view->setBackgroundColor(0, 0, 0, v1);
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> sources_cloud_color(source, 250, 0, 0);
+	view->addPointCloud(source, sources_cloud_color, "sources_cloud_v1", v1);
+	pcl::visualization::PointCloudColorHandlerCustom<pcl::PointXYZ> target_cloud_color(target, 0, 250, 0);
+	view->addPointCloud(target, target_cloud_color, "target_cloud_v1", v1);
+	view->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "sources_cloud_v1");
+
 	while (!view->wasStopped())
 	{
 		view->spinOnce(100);
@@ -202,9 +222,9 @@ int threeDpointMatchingICP(pointcloud::Ptr source, pointcloud::Ptr target, boost
 	icp.setInputSource(source);
 	icp.setInputTarget(target);
 	// Set the max correspondence distance to 5cm (e.g., correspondences with higher distances will be ignored)
-	icp.setMaxCorrespondenceDistance(0.01);
+	icp.setMaxCorrespondenceDistance(0.005);
 	// Set the maximum number of iterations (criterion 1)
-	icp.setMaximumIterations(50);
+	icp.setMaximumIterations(100);
 	// Set the transformation epsilon (criterion 2)
 	icp.setTransformationEpsilon(1e-10);
 	// Set the euclidean distance difference epsilon (criterion 3)
@@ -212,28 +232,49 @@ int threeDpointMatchingICP(pointcloud::Ptr source, pointcloud::Ptr target, boost
 	// Perform the alignment
 	icp.align(cloud_source_registered);
 	// Obtain the transformation that aligned cloud_source to cloud_source_registered
-	//Eigen::Matrix4f transformation = icp.getFinalTransformation();
+	Eigen::Matrix4f transformation = icp.getFinalTransformation();
 	pcl::CorrespondencesPtr temp = icp.getCorrespondences();
+	pointcloud endCloud;
+	pcl::transformPointCloud(*source.get(), endCloud,transformation);
 	int sz = temp->size();
 	for (int i = 0; i < sz; i++) {
 		cru_correspondences->push_back(temp->at(i));
 	}
+	pointcloud::Ptr endCloud_(&endCloud);
+	showCorrespondence(source, endCloud_);
 	showCorrespondence(source, target, cru_correspondences);
 	return 0;
 }
 
-void outputMatches(boost::shared_ptr<pcl::Correspondences> cru_correspondences, vector<int>& featureIdxList1, vector<int>& featureIdxList2, int startImgIdx, int endImgIdx) {
+void optimizeCodeList(vector<Tools::PointWithCode>& input, vector<Tools::PointWithCode>& output) {
+	int sz = input.size();
+	for (int i = 0; i < sz; i++) {
+		Tools::PointWithCode temp = input[i];
+		if (temp.indexInSiftFile != -1) {
+			output.push_back(temp);
+		}
+	}
+}
+
+void outputFirstAndEndMatchesAndMakeCodeMap(boost::shared_ptr<pcl::Correspondences> cru_correspondences, 
+		vector<int>& featureIdxList1, vector<int>& featureIdxList2, int startImgIdx, int endImgIdx, 
+		map<int, int>& codeMap, vector<Tools::PointWithCode>** avgCamsPixels, int endGroupImageNum) {
 	int sz = cru_correspondences->size();
 	ofstream ouF(root_dir + sfm_dir + "match.txt", ios::app);
 	ouF << startImgIdx << imgType << " " << endImgIdx << imgType << " " << sz << "\n";
 	vector<int> matches[2];
 	matches[0].resize(0);
 	matches[1].resize(0);
+	vector<Tools::PointWithCode> firstList;
+	vector<Tools::PointWithCode> endList;
+	optimizeCodeList(avgCamsPixels[0][0], firstList);
+	optimizeCodeList(avgCamsPixels[1][endGroupImageNum - 1], endList);
 	for (int i = 0; i < sz; i++) {
 		int sourceI = cru_correspondences->at(i).index_query;
 		int targetI = cru_correspondences->at(i).index_match;
 		matches[0].push_back(featureIdxList1[sourceI]);
 		matches[1].push_back(featureIdxList2[targetI]);
+		codeMap[firstList[featureIdxList1[sourceI]].code] = endList[featureIdxList2[targetI]].code;
 	}
 	int matchSz = matches[0].size();
 	for (int k = 0; k < 2; k++) {
@@ -244,6 +285,77 @@ void outputMatches(boost::shared_ptr<pcl::Correspondences> cru_correspondences, 
 	}
 }
 
+void readTwoGroupCode(vector<Tools::PointWithCode>** avgCamsPixels, vector<int>& sz) {
+	int numOfProjectorGroup;
+	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
+	// save feature points
+	
+	char* projectorGroupDirTemp = new char[projector_group_dir_length];
+	int idx;
+	int numOfImageGroup;
+	cv::String imagesDir1;
+	for (int i = 0; i < 2; i++) {
+		Utilities::readNumOfImageGroup(i * (numOfProjectorGroup-1), numOfImageGroup, imagesDir1);
+		avgCamsPixels[i] = new vector<Tools::PointWithCode>[numOfImageGroup];
+		sz.push_back(numOfImageGroup);
+		for (int j = 0; j < numOfImageGroup; j++) {
+			idx = 0;
+			if (j==0 && i ==1) {
+				vector<Tools::PointWithCode> temp;
+				cv::String imagesDirTemp;
+				int numOfImageGroupTemp;
+				Utilities::readNumOfImageGroup(i * numOfProjectorGroup - 2, numOfImageGroupTemp, imagesDirTemp);
+				ostringstream numStrTemp;
+				numStrTemp << numOfImageGroupTemp - 1;
+				Tools::loadCamsPixelsForReconstuction(temp, imagesDirTemp + numStrTemp.str() + decodefileType, idx);
+			}
+			avgCamsPixels[i][j].resize(0);
+			ostringstream numStr;
+			numStr << j;
+			Tools::loadCamsPixelsForReconstuction(avgCamsPixels[i][j], imagesDir1 + numStr.str() + decodefileType, idx);
+		}
+	}
+}
+
+void outputMatches(vector<Tools::PointWithCode>** avgCamsPixels, vector<int>& sz, map<int, int>& codeMap, int endImgIdx) {
+	ofstream ouF;
+	ouF.open((root_dir + sfm_dir + "match.txt").c_str(), ios::app);
+	for (int i = 0; i < sz[0]; i++) {
+		vector<Tools::PointWithCode> camPixels1 = avgCamsPixels[0][i];
+		for (int j = 0; j < sz[1]; j++) {
+			vector<Tools::PointWithCode> camPixels2 = avgCamsPixels[1][j];
+			int size = camPixels1.size();
+			vector<int> matches[2];
+			matches[0].resize(0);
+			matches[1].resize(0);
+			for (int k = 0; k < size; k++) {
+				Tools::PointWithCode pwc1 = camPixels1[k];
+				if (pwc1.indexInSiftFile != -1) {
+					map<int, int>::iterator iter;
+					iter = codeMap.find(k);
+					if (iter != codeMap.end()) {
+						int codeFin = iter->second;
+						int idx2 = camPixels2[codeFin].indexInSiftFile;
+						if (idx2 != -1) {
+							matches[0].push_back(pwc1.indexInSiftFile);
+							matches[1].push_back(idx2);
+						}
+					}
+				}
+			}
+			int matchSz = matches[0].size();
+			ouF << i << imgType << " " << endImgIdx - sz[1] + 1 + j << imgType << " " << matchSz << "\n";
+			for (int k = 0; k < 2; k++) {
+				for (int l = 0; l < matchSz; l++) {
+					ouF << matches[k][l] << " ";
+				}
+				ouF << "\n";
+			}
+		}
+	}
+	ouF.close();
+}
+
 void LoopClosing::loopClose()
 {
 	pointcloud::Ptr source(new pointcloud);
@@ -251,10 +363,16 @@ void LoopClosing::loopClose()
 	vector<int> featureIdxList1;
 	vector<int> featureIdxList2;
 	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
-	int endImgIdx = 9;
+	int endImgIdx;
 	int startImgIdx = 0;
 	readNvmFile(source, target, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
-	//threeDpointMatching(source, target, cru_correspondences);
-	threeDpointMatchingICP(source, target, cru_correspondences);
-	outputMatches(cru_correspondences, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
+	threeDpointMatching(source, target, cru_correspondences);
+	//threeDpointMatchingICP(source, target, cru_correspondences);
+	map<int, int> codeMap;
+	vector<Tools::PointWithCode>** avgCamsPixels = new vector<Tools::PointWithCode>*[2];
+	vector<int> sz;
+	sz.resize(0);
+	readTwoGroupCode(avgCamsPixels, sz);
+	outputFirstAndEndMatchesAndMakeCodeMap(cru_correspondences, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx, codeMap, avgCamsPixels, sz[1]);
+	outputMatches(avgCamsPixels, sz, codeMap, endImgIdx);
 }

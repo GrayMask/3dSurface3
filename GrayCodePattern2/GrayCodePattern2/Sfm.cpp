@@ -232,15 +232,15 @@ void saveMatch(vector<Tools::PointWithCode> **camsPixels, int numOfProjectorGrou
 		int sizeOfLastOfProjectorGroup1 = camsPixels[p][numOfImageGroup1 - 1].size();
 		int iMax = (p == numOfProjectorGroup - 2) ? numOfImageGroup1 + numOfImageGroup2 - 2 : numOfImageGroup1 - 1;
 		for (int i = 0; i < iMax; i++) {
+			int numI = i > numOfImageGroup1 - 2 ? 1 : 0;
+			int ii = i - numI*(numOfImageGroup1 - 1);
+			vector<Tools::PointWithCode> camPixels1 = camsPixels[p + numI][ii];
 			for (int j = i + 1; j < numOfImageGroup1 + numOfImageGroup2 -1; j++) {
-				int numI = i > numOfImageGroup1 - 2 ? 1 : 0;
 				int numJ = j > numOfImageGroup1 - 1 ? 1 : 0;
-				int ii = i - numI*(numOfImageGroup1 - 1);
 				int jj = j - numJ*(numOfImageGroup1 - 1);
 				vector<int> matches[2];
 				matches[0].resize(0);
 				matches[1].resize(0);
-				vector<Tools::PointWithCode> camPixels1 = camsPixels[p + numI][ii];
 				vector<Tools::PointWithCode> camPixels2 = camsPixels[p + numJ][jj];
 				int sz = camPixels1.size();
 				for (int k = 0; k < sz; k++) {

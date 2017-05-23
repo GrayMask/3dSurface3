@@ -1,0 +1,93 @@
+
+pmvs2
+D:\document\project\3dSurface3\code\expr6\sfm_images\d.nvm.cmvs\00\
+option-0000
+--------------------------------------------------
+--- Summary of specified options ---
+# of timages: 9 (enumeration)
+# of oimages: 0 (enumeration)
+level: 1  csize: 2
+threshold: 0.4  wsize: 7
+minImageNum: 2  CPU: 12
+useVisData: 1  sequence: -1
+--------------------------------------------------
+Reading images: *********
+0 2 15 8 4  6 3Harris running ... Harris running ...Harris running ...Harris running ...Harris running ...9 Harris running ...Harris running ...Harris running ...Harris running ...1468 harris done
+1472 harris done
+DoG running...DoG running...1480 harris done
+DoG running...1520 harris done
+1461 harris done
+DoG running...DoG running...1479 harris done
+DoG running...1404 harris done
+1452 harris done
+DoG running...DoG running...1513 harris done
+DoG running...2040 dog done
+2040 dog done
+2040 dog done
+2040 dog done
+2040 dog done
+2040 dog done
+2040 dog done
+2037 dog done
+2040 dog done
+done
+adding seeds 
+(5,536)(4,555)(1,582)(8,585)(6,569)(7,640)(3,585)(0,680)(2,596)done
+---- Initial: 0 secs ----
+Total pass fail0 fail1 refinepatch: 41038 9099 25513 6426 15525
+Total pass fail0 fail1 refinepatch: 100 22.1721 62.1692 15.6587 37.8308
+Expanding patches...refinePatchBFGS failed!
+
+---- EXPANSION: 12 secs ----
+Total pass fail0 fail1 refinepatch: 262875 163313 64678 34884 198197
+Total pass fail0 fail1 refinepatch: 100 62.1257 24.6041 13.2702 75.3959
+FilterOutside
+mainbody: 
+Gain (ave/var): 0.38839 0.474382
+168566 -> 141811 (84.1279%)	0 secs
+Filter Exact: *********
+141811 -> 70375 (49.6259%)	0 secs
+FilterNeighbor:	70375 -> 44910 (63.8153%)	0 secs
+FilterGroups:	20
+44910 -> 19227 (42.8123%)	0 secs
+STATUS: 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 
+Expanding patches...refinePatchBFGS failed!
+
+---- EXPANSION: 13 secs ----
+Total pass fail0 fail1 refinepatch: 318045 142060 61370 114615 256675
+Total pass fail0 fail1 refinepatch: 100 44.6666 19.296 36.0374 80.704
+FilterOutside
+mainbody: 
+Gain (ave/var): 0.47598 0.461925
+161287 -> 145496 (90.2094%)	0 secs
+Filter Exact: *********
+145496 -> 70944 (48.7601%)	0 secs
+FilterNeighbor:	70944 -> 56677 (79.8898%)	0 secs
+FilterGroups:	20
+56677 -> 36757 (64.8535%)	0 secs
+STATUS: 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 
+Expanding patches...refinePatchBFGS failed!
+
+---- EXPANSION: 18 secs ----
+Total pass fail0 fail1 refinepatch: 412121 178936 75485 157700 336636
+Total pass fail0 fail1 refinepatch: 100 43.4183 18.3162 38.2655 81.6838
+FilterOutside
+mainbody: 
+Gain (ave/var): 0.4649 0.468766
+215693 -> 194064 (89.9723%)	0 secs
+Filter Exact: *********
+194064 -> 89665 (46.2038%)	0 secs
+FilterNeighbor:	89665 -> 71374 (79.6007%)	0 secs
+FilterGroups:	20
+71374 -> 44432 (62.2524%)	0 secs
+STATUS: 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 
+---- Total: 0 secs ----
