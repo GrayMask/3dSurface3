@@ -1,4 +1,7 @@
 #include <opencv2/core.hpp>;
+#include <pcl/features/normal_3d.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 using namespace std;
 #ifndef TOOLS_H
 #define TOOLS_H
@@ -9,6 +12,13 @@ public:
 		cv::Point2f point;
 		int indexInSiftFile;
 		int code;
+	};
+
+	struct ThreeDPoint {
+		cv::Point3d point;
+		int r;
+		int g;
+		int b;
 	};
 
 	static int copyFile(const cv::String fromName, const cv::String toName);
@@ -34,5 +44,9 @@ public:
 	static void loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv::String path, int& lastIdx);
 
 	static void getAllFiles(cv::String path, vector<cv::String>& files);
+
+	static void readPointCloudFromNvm(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud);
+
+	static void savePointCloudInPly(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud, pcl::PointCloud<pcl::Normal>::Ptr normal);
 };
 #endif

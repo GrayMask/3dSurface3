@@ -3,6 +3,9 @@
 #include <fstream>
 #include <iostream>
 #include <opencv2/core.hpp>;
+#include <pcl/features/normal_3d.h>
+#include <pcl/point_types.h>
+#include <pcl/point_cloud.h>
 #include "windows.h"  
 #include "Tools.h"
 #include "Const.h"
@@ -290,5 +293,52 @@ void Tools::getAllFiles(cv::String path, vector<cv::String>& files)
 	int sz = fileDatas.size();
 	for (int i = 0; i < sz; i++) {
 		files.push_back(fileDatas[i].fileName);
+	}
+}
+
+void Tools::readPointCloudFromNvm(pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud)
+{
+	ifstream in(root_dir + nvm_file);
+	if (!in.is_open())
+	{
+		cout << "Error opening file";
+		return;
+	}
+	int imageMount, pointMount, featureMount, imageIdx, featureIdx;
+	int r, g, b;
+	if (Tools::goWithLine(in, 2)) {
+		in >> imageMount;
+		if (Tools::goWithLine(in, imageMount + 2)) {
+			in >> pointMount;
+			for (int i = 0; i < pointMount; i++) {
+				pcl::PointXYZRGB threeDPoint;
+				in >> threeDPoint.x >> threeDPoint.y >> threeDPoint.z;
+				in >> r >> g >> b;
+				threeDPoint.r = r;
+				threeDPoint.g = g;
+				threeDPoint.b = b;
+				cloud->push_back(threeDPoint);
+				Tools::goWithLine(in, 1);
+			}
+		}
+	}
+}
+
+void Tools::savePointCloudInPly(pcl::PointCloud<pcl::PointXYZRGB>::Ptr pointcloud, pcl::PointCloud<pcl::Normal>::Ptr normal) {
+	ofstream out(root_dir + expr_dir + plyFileName);
+	if (out.is_open())
+	{
+		int pointCount = pointcloud->size();
+		out << "ply\nformat ascii 1.0\ncomment Kinect v1 generated\nelement vertex " << pointCount 
+			<< "\nproperty double x\nproperty double y\nproperty double z\n" << 
+			"property uchar red\nproperty uchar green\nproperty uchar blue\n" << 
+			"property float nx\nproperty float ny\nproperty float nz\nend_header\n";
+
+		for (int i = 0; i < pointCount; i++) {
+			out << pointcloud->at(i).x << " " << pointcloud->at(i).y << " " << pointcloud->at(i).z
+				<< " " << (int)pointcloud->at(i).r << " " << (int)pointcloud->at(i).g << " " << (int)pointcloud->at(i).b 
+				<< " " << normal->at(i).normal_x << " " << normal->at(i).normal_y << " " << normal->at(i).normal_z << "\n";
+		}
+		out.close();
 	}
 }

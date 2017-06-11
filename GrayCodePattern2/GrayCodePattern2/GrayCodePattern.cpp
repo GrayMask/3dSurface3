@@ -145,8 +145,8 @@ void GrayCodePattern::getGrayCodeImagesForIphone()
 	Mat white;
 	Mat black;
 	graycode->getImagesForShadowMasks(black, white);
-	pattern.push_back(white);
 	pattern.push_back(black);
+	pattern.push_back(white);
 	int ptsz = pattern.size();
 	// Setting pattern window on second monitor (the projector's one)
 	namedWindow("Pattern Window", WINDOW_NORMAL);
@@ -215,7 +215,7 @@ void GrayCodePattern::getGrayCodeImagesForIphone()
 void getStartPointOfVedio(VideoCapture& capture, int& startFrame) {
 	startFrame = -1;
 	Mat img;
-	int m ,firstM;
+	int m ,lastM;
 	int currentFrame = 0;
 	int frameToStop = capture.get(CV_CAP_PROP_FRAME_COUNT);
 	while (true)
@@ -227,10 +227,7 @@ void getStartPointOfVedio(VideoCapture& capture, int& startFrame) {
 		//cout << currentFrame << endl;
 		m = mean(img)[0];
 		//cout << "Mean: " << m << endl;
-		if (currentFrame == 0) {
-			firstM = m;
-		}
-		if (currentFrame > 0 && firstM - m > iphone_vedio_start_thresh) {
+		if (currentFrame > 0 && m - lastM > iphone_vedio_start_thresh) {
 			startFrame = currentFrame;
 			break;
 		}
@@ -238,15 +235,16 @@ void getStartPointOfVedio(VideoCapture& capture, int& startFrame) {
 		{
 			break;
 		}
+		lastM = m;
 		currentFrame++;
 	}
 }
 
 void extractFrame(cv::String imagesDir) {
 	int patternNum = log(proj_width) / log(2) * 4 + 2;
-	int numOfProjectorGroup;
+	//int numOfProjectorGroup;
 	String imagesDir1;
-	Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
+	//Tools::readGroupNumFile(root_dir + projectorGroupNum_file, numOfProjectorGroup);
 	Mat frame;
 	cv::VideoCapture capture(imagesDir + new_iphone_vedio_file);
 	int startFrameNum;
@@ -261,7 +259,16 @@ void extractFrame(cv::String imagesDir) {
 		capture.set(CV_CAP_PROP_POS_FRAMES, startFrameNum + selectSecond * rate);
 		capture.read(frame);
 		ostringstream name;
-		name << k + 1;
+		// change the sequence of black and white patterns.
+		if (patternNum - k - 1 == 1) {
+			name << k + 2;
+		}
+		else if (patternNum - k - 1 == 0) {
+			name << k;
+		}
+		else {
+			name << k + 1;
+		}
 		String imagesFile1 = imagesDir + images_file + name.str() + imgType;
 		fs1 << images_file + name.str() + imgType;
 		imwrite(imagesFile1, frame);
