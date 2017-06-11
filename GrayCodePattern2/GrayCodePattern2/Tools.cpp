@@ -289,7 +289,7 @@ void Tools::getAllFiles(cv::String path, vector<cv::String>& files)
 		} while (FindNextFile(hFile, &FindFileData));
 		FindClose(hFile);
 	}
-	std::sort(fileDatas.begin(), fileDatas.end(), SortByCreateTime);
+	//std::sort(fileDatas.begin(), fileDatas.end(), SortByCreateTime);
 	int sz = fileDatas.size();
 	for (int i = 0; i < sz; i++) {
 		files.push_back(fileDatas[i].fileName);

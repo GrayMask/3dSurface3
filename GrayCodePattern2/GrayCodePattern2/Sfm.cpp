@@ -336,19 +336,19 @@ void Sfm::simplifyMatchFile() {
 		string fileA, fileB;
 		int count, temp;
 		inF >> fileA >> fileB >> count;
-		int newMulti = count < 20000 ? 1 : multiple;
-		int newCount = (count + newMulti -1) / newMulti;
+		int newMulti = count < 20000 ? count : multiple;
+		int newCount = count * (newMulti -1) / newMulti;
 		ouF << fileA << " " << fileB << " " << newCount << "\n";
 		for (int i = 0; i < count; i++) {
 			inF >> temp;
-			if (i % newMulti == 0) {
+			if (i % newMulti != 0) {
 				ouF << temp << " ";
 			}
 		}
 		ouF << "\n";
 		for (int i = 0; i < count; i++) {
 			inF >> temp;
-			if (i % newMulti == 0) {
+			if (i % newMulti != 0) {
 				ouF << temp << " ";
 			}
 		}

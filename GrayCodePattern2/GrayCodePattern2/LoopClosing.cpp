@@ -234,15 +234,15 @@ int threeDpointMatchingICP(pointcloud::Ptr source, pointcloud::Ptr target, boost
 	// Obtain the transformation that aligned cloud_source to cloud_source_registered
 	Eigen::Matrix4f transformation = icp.getFinalTransformation();
 	pcl::CorrespondencesPtr temp = icp.getCorrespondences();
-	pointcloud endCloud;
-	pcl::transformPointCloud(*source.get(), endCloud,transformation);
+	//pointcloud endCloud;
+	//pcl::transformPointCloud(*source.get(), endCloud,transformation);
 	int sz = temp->size();
 	for (int i = 0; i < sz; i++) {
 		cru_correspondences->push_back(temp->at(i));
 	}
-	pointcloud::Ptr endCloud_(&endCloud);
-	showCorrespondence(source, endCloud_);
-	showCorrespondence(source, target, cru_correspondences);
+	//pointcloud::Ptr endCloud_(&endCloud);
+	//showCorrespondence(source, endCloud_);
+	//showCorrespondence(source, target, cru_correspondences);
 	return 0;
 }
 
@@ -274,7 +274,9 @@ void outputFirstAndEndMatchesAndMakeCodeMap(boost::shared_ptr<pcl::Correspondenc
 		int targetI = cru_correspondences->at(i).index_match;
 		matches[0].push_back(featureIdxList1[sourceI]);
 		matches[1].push_back(featureIdxList2[targetI]);
-		codeMap[firstList[featureIdxList1[sourceI]].code] = endList[featureIdxList2[targetI]].code;
+		int a = featureIdxList1[sourceI];
+		int b = featureIdxList2[targetI];
+		codeMap[firstList[a].code] = endList[b].code;
 	}
 	int matchSz = matches[0].size();
 	for (int k = 0; k < 2; k++) {
@@ -363,16 +365,16 @@ void LoopClosing::loopClose()
 	vector<int> featureIdxList1;
 	vector<int> featureIdxList2;
 	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
-	int endImgIdx;
-	int startImgIdx = 0;
+	int endImgIdx = 9;
+	int startImgIdx = 6;
 	readNvmFile(source, target, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
-	threeDpointMatching(source, target, cru_correspondences);
-	//threeDpointMatchingICP(source, target, cru_correspondences);
+	//threeDpointMatching(source, target, cru_correspondences);
+	threeDpointMatchingICP(source, target, cru_correspondences);
 	map<int, int> codeMap;
 	vector<Tools::PointWithCode>** avgCamsPixels = new vector<Tools::PointWithCode>*[2];
 	vector<int> sz;
 	sz.resize(0);
 	readTwoGroupCode(avgCamsPixels, sz);
 	outputFirstAndEndMatchesAndMakeCodeMap(cru_correspondences, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx, codeMap, avgCamsPixels, sz[1]);
-	outputMatches(avgCamsPixels, sz, codeMap, endImgIdx);
+	//outputMatches(avgCamsPixels, sz, codeMap, endImgIdx);
 }

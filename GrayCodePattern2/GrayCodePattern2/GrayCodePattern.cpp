@@ -255,20 +255,18 @@ void extractFrame(cv::String imagesDir) {
 	fs1 << "imagelist" << "[";
 	for (int k = 0; k < patternNum; k++) {
 		int projectedPatternPosition = patternNum - k - 1; // The patterns are projected in descending order
+		if (projectedPatternPosition == 1) {
+			projectedPatternPosition = 0;
+		}
+		else if (projectedPatternPosition == 0) {
+			projectedPatternPosition = 1;
+		}
 		float selectSecond = projectedPatternPosition * periodOfEachPattern + periodOfEachPattern * thePositionInPeriod;
 		capture.set(CV_CAP_PROP_POS_FRAMES, startFrameNum + selectSecond * rate);
 		capture.read(frame);
 		ostringstream name;
 		// change the sequence of black and white patterns.
-		if (patternNum - k - 1 == 1) {
-			name << k + 2;
-		}
-		else if (patternNum - k - 1 == 0) {
-			name << k;
-		}
-		else {
-			name << k + 1;
-		}
+		name << k + 1;
 		String imagesFile1 = imagesDir + images_file + name.str() + imgType;
 		fs1 << images_file + name.str() + imgType;
 		imwrite(imagesFile1, frame);

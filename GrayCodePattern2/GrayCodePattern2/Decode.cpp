@@ -12,7 +12,7 @@
 #include <windows.h>
 #include <map>
 
-#define MAX_THREADS 8
+#define MAX_THREADS 6
 
 void makeSfmDir(int const numOfProjectorGroup) {
 	// make a new dir

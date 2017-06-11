@@ -1,8 +1,8 @@
 function readVideo( )
 fileName = 'v.MOV'; 
 obj = VideoReader(fileName);
-numFrames = 2 * 120;
-numFrames2 = 5 * 120;
+numFrames = 4 * 120;
+numFrames2 = 7 * 120;
 a=[];
  for k = numFrames : numFrames2
      frame = read(obj,k);

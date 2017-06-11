@@ -9,7 +9,7 @@ extern const int cam_height = 1080;//1080;//3024;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
 extern const float thePositionInPeriod = 0.5; // percent, the sample position in a period of pattern
-extern const float periodOfEachPattern = 0.3; // second
+extern const float periodOfEachPattern = 0.1; // second
 
 // const bool isStereoCamera = false;
 
