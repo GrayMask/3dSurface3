@@ -56,18 +56,18 @@ void MeshRecon::poissonRecon()
 	pointcloud::Ptr pointCloud(new pointcloud);
 	Tools::readPointCloudFromNvm(pointCloud);
 	pointcloud::Ptr trimedCloud(new pointcloud);
-	filterPointCloud(pointCloud, trimedCloud);
+	//filterPointCloud(pointCloud, trimedCloud);
 	pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
 	pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
 	pointnormal::Ptr normals(new pcl::PointCloud<pcl::Normal>);
 	pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-	tree->setInputCloud(trimedCloud);
-	n.setInputCloud(trimedCloud);
+	tree->setInputCloud(pointCloud);
+	n.setInputCloud(pointCloud);
 	n.setSearchMethod(tree);
 	n.setKSearch(20);
 	n.compute(*normals);
 
-	pcl::concatenateFields(*trimedCloud, *normals, *cloud_with_normals);
+	pcl::concatenateFields(*pointCloud, *normals, *cloud_with_normals);
 	pcl::PLYWriter writer;
 	writer.write(root_dir + expr_dir + "point.ply", *cloud_with_normals);
 

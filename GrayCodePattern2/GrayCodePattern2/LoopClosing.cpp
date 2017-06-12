@@ -7,6 +7,7 @@
 #include <pcl/visualization/pcl_visualizer.h>
 #include <pcl/features/fpfh_omp.h>
 #include <pcl/registration/icp.h>
+#include <pcl/io/ply_io.h>
 #include "LoopClosing.h"
 #include "Tools.h"
 #include "Const.h"
@@ -234,12 +235,15 @@ int threeDpointMatchingICP(pointcloud::Ptr source, pointcloud::Ptr target, boost
 	// Obtain the transformation that aligned cloud_source to cloud_source_registered
 	Eigen::Matrix4f transformation = icp.getFinalTransformation();
 	pcl::CorrespondencesPtr temp = icp.getCorrespondences();
-	//pointcloud endCloud;
-	//pcl::transformPointCloud(*source.get(), endCloud,transformation);
+	pointcloud endCloud;
+	pcl::transformPointCloud(*source.get(), endCloud,transformation);
 	int sz = temp->size();
 	for (int i = 0; i < sz; i++) {
 		cru_correspondences->push_back(temp->at(i));
 	}
+	pcl::PLYWriter writer;
+	writer.write(root_dir + expr_dir + "source.ply", endCloud);
+	writer.write(root_dir + expr_dir + "target.ply", *target);
 	//pointcloud::Ptr endCloud_(&endCloud);
 	//showCorrespondence(source, endCloud_);
 	//showCorrespondence(source, target, cru_correspondences);
@@ -365,8 +369,8 @@ void LoopClosing::loopClose()
 	vector<int> featureIdxList1;
 	vector<int> featureIdxList2;
 	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
-	int endImgIdx = 9;
-	int startImgIdx = 6;
+	int endImgIdx = 6;
+	int startImgIdx = 10;
 	readNvmFile(source, target, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
 	//threeDpointMatching(source, target, cru_correspondences);
 	threeDpointMatchingICP(source, target, cru_correspondences);
