@@ -29,13 +29,32 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& fe
 	featureIdxList1.resize(0);
 	featureIdxList2.resize(0);
 	int imageMount, pointMount, featureMount, imageIdx, featureIdx;
+
 	double x, y, z;
 	if (Tools::goWithLine(in, 2)) {
 		in >> imageMount;
 		if (endImgIdx > imageMount -1 || endImgIdx < 0) {
 			endImgIdx = imageMount - 1;
 		}
-		if (Tools::goWithLine(in, imageMount + 2)) {
+		ostringstream startStr, endStr;
+		startStr << startImgIdx;
+		endStr << endImgIdx;
+		cv::String startPathStr = startStr.str() + imgType;
+		cv::String endPathStr = endStr.str() + imgType;
+		string tempPathStr;
+		int nvmStartImgIdx, nvmEndImgIdx;
+		// get idx in nvm file
+		for (int k = 0; k < imageMount; k++) {
+			Tools::goWithLine(in, 1);
+			in >> tempPathStr;
+			if (startPathStr == tempPathStr) {
+				nvmStartImgIdx = k;
+			}
+			else if (endPathStr == tempPathStr) {
+				nvmEndImgIdx = k;
+			}
+		}
+		if (Tools::goWithLine(in, 2)) {
 			in >> pointMount;
 			for (int i = 0; i < pointMount; i++) {
 				in >> x >> y >> z;
@@ -44,11 +63,11 @@ bool readNvmFile(pointcloud::Ptr cloud1, pointcloud::Ptr cloud2, vector<int>& fe
 				for (int j = 0; j < featureMount; j++) {
 					in >> imageIdx >> featureIdx;
 					Tools::goWithStep(in, 2);
-					if (imageIdx == startImgIdx) {
+					if (imageIdx == nvmStartImgIdx) {
 						cloud1->push_back(pcl::PointXYZ(x, y, z));
 						featureIdxList1.push_back(featureIdx);
 					}
-					else if(imageIdx == endImgIdx) {
+					else if(imageIdx == nvmEndImgIdx) {
 						cloud2->push_back(pcl::PointXYZ(x, y, z));
 						featureIdxList2.push_back(featureIdx);
 					}
@@ -369,8 +388,8 @@ void LoopClosing::loopClose()
 	vector<int> featureIdxList1;
 	vector<int> featureIdxList2;
 	boost::shared_ptr<pcl::Correspondences> cru_correspondences(new pcl::Correspondences);
-	int endImgIdx = 6;
-	int startImgIdx = 10;
+	int endImgIdx;
+	int startImgIdx = 0;
 	readNvmFile(source, target, featureIdxList1, featureIdxList2, startImgIdx, endImgIdx);
 	//threeDpointMatching(source, target, cru_correspondences);
 	threeDpointMatchingICP(source, target, cru_correspondences);
