@@ -263,9 +263,11 @@ int threeDpointMatchingICP(pointcloud::Ptr source, pointcloud::Ptr target, boost
 	pcl::PLYWriter writer;
 	writer.write(root_dir + expr_dir + "source.ply", endCloud);
 	writer.write(root_dir + expr_dir + "target.ply", *target);
-	//pointcloud::Ptr endCloud_(&endCloud);
-	//showCorrespondence(source, endCloud_);
-	//showCorrespondence(source, target, cru_correspondences);
+	if (showICPResult) {
+		pointcloud::Ptr endCloud_(&endCloud);
+		showCorrespondence(endCloud_, target);
+		showCorrespondence(source, target, cru_correspondences);
+	}
 	return 0;
 }
 

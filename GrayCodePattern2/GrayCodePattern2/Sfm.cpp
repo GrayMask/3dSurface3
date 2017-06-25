@@ -327,7 +327,6 @@ void Sfm::executeMatching() {
 }
 
 void Sfm::simplifyMatchFile() {
-	int multiple = 3;
 	ifstream inF;
 	inF.open((root_dir + sfm_dir + "match.txt").c_str());
 	ofstream ouF;
@@ -336,7 +335,7 @@ void Sfm::simplifyMatchFile() {
 		string fileA, fileB;
 		int count, temp;
 		inF >> fileA >> fileB >> count;
-		int newMulti = count < 20000 ? count : multiple;
+		int newMulti = count < 20000 ? count : matchFileSimplifyMultiple;
 		int newCount = count * (newMulti -1) / newMulti;
 		ouF << fileA << " " << fileB << " " << newCount << "\n";
 		for (int i = 0; i < count; i++) {

@@ -49,8 +49,12 @@ extern const float mapping_thresh;
 
 extern const cv::Point nullPoint;
 
+// Simplify match file
+extern const int matchFileSimplifyMultiple;
+
 // loop closing
 extern const double initial_max_distance_thresh;
+extern const bool showICPResult;
 
 //extern const bool isRemap;
 

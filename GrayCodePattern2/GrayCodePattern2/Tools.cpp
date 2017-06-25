@@ -116,7 +116,7 @@ int Tools::readStringList(cv::String& filename, vector<cv::String>& l) {
 bool Tools::goWithLine(ifstream & in, int line)
 {
 	int i;
-	char buf[1024];
+	char buf[4096];
 	for (i = 0; i < line; i++)
 	{
 		if (!in.getline(buf, sizeof(buf))) {

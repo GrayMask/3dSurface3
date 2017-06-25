@@ -55,21 +55,22 @@ void MeshRecon::poissonRecon()
 {
 	pointcloud::Ptr pointCloud(new pointcloud);
 	Tools::readPointCloudFromNvm(pointCloud);
-	pointcloud::Ptr trimedCloud(new pointcloud);
+	//pointcloud::Ptr trimedCloud(new pointcloud);
 	//filterPointCloud(pointCloud, trimedCloud);
-	pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
-	pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
-	pointnormal::Ptr normals(new pcl::PointCloud<pcl::Normal>);
-	pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
-	tree->setInputCloud(pointCloud);
-	n.setInputCloud(pointCloud);
-	n.setSearchMethod(tree);
-	n.setKSearch(20);
-	n.compute(*normals);
+	//pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr cloud_with_normals(new pcl::PointCloud<pcl::PointXYZRGBNormal>);
+	//pcl::NormalEstimation<pcl::PointXYZRGB, pcl::Normal> n;
+	//pointnormal::Ptr normals(new pcl::PointCloud<pcl::Normal>);
+	//pcl::search::KdTree<pcl::PointXYZRGB>::Ptr tree(new pcl::search::KdTree<pcl::PointXYZRGB>);
+	//tree->setInputCloud(pointCloud);
+	//n.setInputCloud(pointCloud);
+	//n.setSearchMethod(tree);
+	//n.setKSearch(20);
+	//n.compute(*normals);
 
-	pcl::concatenateFields(*pointCloud, *normals, *cloud_with_normals);
+	//pcl::concatenateFields(*pointCloud, *normals, *cloud_with_normals);
 	pcl::PLYWriter writer;
-	writer.write(root_dir + expr_dir + "point.ply", *cloud_with_normals);
+	//writer.write(root_dir + expr_dir + "point.ply", *cloud_with_normals);
+	writer.write(root_dir + expr_dir + "point.ply", *pointCloud);
 
 	//pcl::search::KdTree<pcl::PointXYZRGBNormal>::Ptr tree2(new pcl::search::KdTree<pcl::PointXYZRGBNormal>);
 	//tree2->setInputCloud(cloud_with_normals);

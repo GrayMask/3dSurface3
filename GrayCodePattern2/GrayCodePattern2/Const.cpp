@@ -14,7 +14,7 @@ extern const float periodOfEachPattern = 0.1; // second
 // const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "7";
+extern const cv::String exprNum = "6";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
 extern const cv::String calib_file = "calibration_result\\camera4.xml";
 extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
@@ -50,8 +50,12 @@ extern const float mapping_thresh = 0.5;
 
 extern const cv::Point nullPoint = -1;
 
+// Simplify match file
+extern const int matchFileSimplifyMultiple = 5;
+
 // loop closing
 extern const double initial_max_distance_thresh = 0.02;
+extern const bool showICPResult = false;
 
 //extern const bool isRemap = true;
 
