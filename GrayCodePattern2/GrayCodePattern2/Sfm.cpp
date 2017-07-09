@@ -13,108 +13,13 @@
 
 //using namespace std;
 
-
-//for a (x,y) pixel of the camera returns the corresponding projector pixel
-bool getProjPixel(int x, int y, cv::Point2f &p_out, vector<cv::Mat>& captured_pattern)
-{
-	vector<bool> grayCol;
-	vector<bool> grayRow;
-	int numOfColBits = log(proj_width) / log(2);
-	int numOfRowBits = log(proj_height) / log(2);
-
-	bool error = false;
-	int xDec, yDec;
-
-	//prosses column images
-	for (int count = 0; count<numOfColBits; count++)
-	{
-		//get pixel intensity for regular pattern projection and it's inverse 
-		double val1, val2;
-		val1 = Utilities::matGet2D(captured_pattern[count * 2], x, y);
-		val2 = Utilities::matGet2D(captured_pattern[count * 2 + 1], x, y);
-
-		//check if intensity deference is in a valid rage
-		if (abs(val1 - val2) < white_thresh)
-			error = true;
-
-		//determine if projection pixel is on or off
-		if (val1>val2)
-			grayCol.push_back(1);
-		else
-			grayCol.push_back(0);
-
-	}
-
-	xDec = Utilities::grayToDec(grayCol);
-
-	//prosses row images
-	for (int count = 0; count < numOfRowBits; count++)
-	{
-
-		double val1, val2;
-
-		val1 = Utilities::matGet2D(captured_pattern[count * 2 + numOfColBits * 2], x, y);
-		val2 = Utilities::matGet2D(captured_pattern[count * 2 + numOfColBits * 2 + 1], x, y);
-
-		if (abs(val1 - val2) < white_thresh)  //check if the difference between the values of the normal and it's inverce projection image is valid
-			error = true;
-
-		if (val1 > val2)
-			grayRow.push_back(1);
-		else
-			grayRow.push_back(0);
-
-	}
-
-	//decode
-	yDec = Utilities::grayToDec(grayRow);
-
-	if ((yDec > proj_height || xDec > proj_width))
-	{
-		error = true;
-	}
-
-	p_out.x = xDec;
-	p_out.y = yDec;
-
-	return error;
+float distanceOfTwoPoints_2(cv::Point2f point1, cv::Point2f point2) {
+	float xx = point1.x - point2.x;
+	float yy = point1.y - point2.y;
+	return xx * xx + yy * yy;
 }
 
-void decodePaterns(cv::Mat& shadowMask, vector<cv::Mat>& captured_pattern, vector<cv::Point> *camPixels)
-{
-	std::cout << "Decoding paterns...";
-
-	int w = cam_width;
-	int h = cam_height;
-
-	cv::Point2f projPixel;
-
-	for (int i = 0; i<w; i++)
-	{
-		for (int j = 0; j<h; j++)
-		{
-
-			//if the pixel is not shadow reconstruct
-			if (shadowMask.at<uchar>(j, i))
-			{
-
-				//get the projector pixel for camera (i,j) pixel
-				bool error = getProjPixel(i, j, projPixel, captured_pattern);
-
-				if (error)
-				{
-					shadowMask.at<uchar>(j, i) = 0;
-					continue;
-				}
-				camPixels[Utilities::ac(projPixel.x, projPixel.y)].push_back(cv::Point(i, j));
-
-			}
-		}
-	}
-	std::cout << "done!\n";
-}
-
-void saveFeaturePoints(vector<Tools::PointWithCode>& camPixels, int num) {
+void saveFeaturePoints_2(vector<Tools::PointWithCode>& camPixels, int num) {
 	FeatureData::LocationData* ld = new FeatureData::LocationData;
 	FeatureData::DescriptorData* dd = new FeatureData::DescriptorData;
 	vector<float> ldData;
@@ -142,14 +47,10 @@ void saveFeaturePoints(vector<Tools::PointWithCode>& camPixels, int num) {
 	fd.saveSIFTB2((root_dir + sfm_dir + numStr.str() + ".SIFT").c_str());
 }
 
-float distanceOfTwoPoints(cv::Point2f point1, cv::Point2f point2) {
-	float xx = point1.x - point2.x;
-	float yy = point1.y - point2.y;
-	return xx * xx + yy * yy;
-}
+  
 
 /* update at 20170410 for shortening mapping time*/
-void simplifyPointWithCodeVector(vector<Tools::PointWithCode>& input, vector<Tools::PointWithCode>& output, cv::Mat shadowMask) {
+void simplifyPointWithCodeVector_2(vector<Tools::PointWithCode>& input, vector<Tools::PointWithCode>& output, cv::Mat shadowMask) {
 	int sz = input.size();
 	for (int i = 0; i < sz; i++) {
 		Tools::PointWithCode pwc = input[i];
@@ -159,7 +60,7 @@ void simplifyPointWithCodeVector(vector<Tools::PointWithCode>& input, vector<Too
 	}
 }
 
-void simplifyPointWithCodeVectorTo2d(vector<Tools::PointWithCode>& input, vector<Tools::PointWithCode>** output, cv::Mat shadowMask) {
+void simplifyPointWithCodeVectorTo2d_2(vector<Tools::PointWithCode>& input, vector<Tools::PointWithCode>** output, cv::Mat shadowMask) {
 	int sz = input.size();
 	for (int i = 0; i < sz; i++) {
 		Tools::PointWithCode pwc = input[i];
@@ -172,7 +73,7 @@ void simplifyPointWithCodeVectorTo2d(vector<Tools::PointWithCode>& input, vector
 	}
 }
 
-void calcCodeMapOfTwoProjecterPosition(vector<Tools::PointWithCode>& camsPixels1, vector<Tools::PointWithCode>& camsPixels2, cv::Mat shadowMask1, cv::Mat shadowMask2, map<int, int>& codeMap) {
+void calcCodeMapOfTwoProjecterPosition_2(vector<Tools::PointWithCode>& camsPixels1, vector<Tools::PointWithCode>& camsPixels2, cv::Mat shadowMask1, cv::Mat shadowMask2, map<int, int>& codeMap) {
 	vector<Tools::PointWithCode> camsPixels1_;
 	vector<Tools::PointWithCode>** camsPixels2_2d = new vector<Tools::PointWithCode>*[cam_width];
 	for (int i = 0; i < cam_width; i++)
@@ -181,8 +82,8 @@ void calcCodeMapOfTwoProjecterPosition(vector<Tools::PointWithCode>& camsPixels1
 	int length = ceil(mapping_thresh);
 	int length_ = length * 2 + 1;
 	float nearestDistSquare = mapping_thresh * mapping_thresh;
-	simplifyPointWithCodeVector(camsPixels1, camsPixels1_, shadowMask2);
-	simplifyPointWithCodeVectorTo2d(camsPixels2, camsPixels2_2d, shadowMask1);
+	simplifyPointWithCodeVector_2(camsPixels1, camsPixels1_, shadowMask2);
+	simplifyPointWithCodeVectorTo2d_2(camsPixels2, camsPixels2_2d, shadowMask1);
 	int sz1 = camsPixels1_.size();
 	//int sz2 = camsPixels2_.size();
 	for (int i = 0; i < sz1; i++) {
@@ -195,7 +96,7 @@ void calcCodeMapOfTwoProjecterPosition(vector<Tools::PointWithCode>& camsPixels1
 				if (xInt >= 0 && xInt < cam_width && yInt >= 0 && yInt < cam_height && camsPixels2_2d[xInt][yInt].size() > 0) {
 					vector<Tools::PointWithCode> pwcVec = camsPixels2_2d[xInt][yInt];
 					for (Tools::PointWithCode pwc2 : pwcVec) {
-						float dist = distanceOfTwoPoints(pwc1.point, pwc2.point);
+						float dist = distanceOfTwoPoints_2(pwc1.point, pwc2.point);
 						if (dist < nearestDist) {
 							codeMap[pwc1.code] = pwc2.code;
 							nearestDist = dist;
@@ -227,7 +128,7 @@ void saveMatch(vector<Tools::PointWithCode> **camsPixels, int numOfProjectorGrou
 		Utilities::readShadowMask(shadowMask1, p, numOfImageGroup1 - 1);
 		Utilities::readShadowMask(shadowMask2, p+1, 0);
 		cout << "Calculating Code Map Of Two Projecter Position " << p << " and " << p+1 << " ..." << endl;
-		calcCodeMapOfTwoProjecterPosition(camsPixels[p][numOfImageGroup1-1], camsPixels[p+1][0], shadowMask1, shadowMask2, codeMap);
+		calcCodeMapOfTwoProjecterPosition_2(camsPixels[p][numOfImageGroup1-1], camsPixels[p+1][0], shadowMask1, shadowMask2, codeMap);
 		cout << "End" << endl;
 		int sizeOfLastOfProjectorGroup1 = camsPixels[p][numOfImageGroup1 - 1].size();
 		int iMax = (p == numOfProjectorGroup - 2) ? numOfImageGroup1 + numOfImageGroup2 - 2 : numOfImageGroup1 - 1;
@@ -312,10 +213,10 @@ void Sfm::executeMatching() {
 					temp.resize(0);
 					temp.insert(temp.end(), avgCamsPixels[i][j].begin(), avgCamsPixels[i][j].end());
 					temp.insert(temp.end(), avgCamsPixels[i + 1][0].begin(), avgCamsPixels[i + 1][0].end());
-					saveFeaturePoints(temp, count);
+					saveFeaturePoints_2(temp, count);
 				}
 				else {
-					saveFeaturePoints(avgCamsPixels[i][j], count);
+					saveFeaturePoints_2(avgCamsPixels[i][j], count);
 				}
 				count++;
 			}
@@ -335,8 +236,8 @@ void Sfm::simplifyMatchFile() {
 		string fileA, fileB;
 		int count, temp;
 		inF >> fileA >> fileB >> count;
-		int newMulti = count < 20000 ? count : matchFileSimplifyMultiple;
-		int newCount = count * (newMulti -1) / newMulti;
+		int newMulti = count < matchFileSimplifyThresh ? count : matchFileSimplifyMultiple;
+		int newCount = count * (newMulti - 1) / newMulti;
 		ouF << fileA << " " << fileB << " " << newCount << "\n";
 		for (int i = 0; i < count; i++) {
 			inF >> temp;

@@ -9,15 +9,15 @@ extern const int cam_height = 1080;//1080;//3024;// 720;//600;//3264;
 extern const int cam_exp = 50;
 
 extern const float thePositionInPeriod = 0.5; // percent, the sample position in a period of pattern
-extern const float periodOfEachPattern = 0.1; // second
+extern const float periodOfEachPattern = 0.05; // second
 
 // const bool isStereoCamera = false;
 
 // dir
-extern const cv::String exprNum = "6";
+extern const cv::String exprNum = "11";
 extern const cv::String expr_dir = "expr" + exprNum + "\\";
-extern const cv::String calib_file = "calibration_result\\camera4.xml";
-extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
+//extern const cv::String calib_file = "calibration_result\\camera4.xml";
+//extern const cv::String disparityMap_file = "matlab\\disparityMap" + exprNum;
 extern const cv::String projectorGroupNum_file = expr_dir + "projectorGroupNum.txt";
 extern const cv::String imageGroupNum_file = "imageGroupNum.txt";
 extern const char* images_group_dir = "partten_images%02d\\";
@@ -46,16 +46,21 @@ extern const bool isThresh = true;
 extern const size_t white_thresh = 5;
 extern const size_t black_thresh = 40;
 
+// code map
 extern const float mapping_thresh = 0.5;
+extern const int length = ceil(mapping_thresh);
+extern const int length_ = length * 2 + 1;
+extern const float nearestDistSquare = mapping_thresh * mapping_thresh;
 
 extern const cv::Point nullPoint = -1;
 
 // Simplify match file
-extern const int matchFileSimplifyMultiple = 5;
+extern const int matchFileSimplifyMultiple = 2;
+extern const int matchFileSimplifyThresh = 8000;
 
 // loop closing
 extern const double initial_max_distance_thresh = 0.02;
-extern const bool showICPResult = false;
+extern const bool showICPResult = true;
 
 //extern const bool isRemap = true;
 

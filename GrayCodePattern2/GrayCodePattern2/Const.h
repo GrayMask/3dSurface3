@@ -15,8 +15,8 @@ extern const float periodOfEachPattern;
 // dir
 extern const cv::String exprNum;
 extern const cv::String expr_dir;
-extern const cv::String calib_file;
-extern const cv::String disparityMap_file;
+//extern const cv::String calib_file;
+//extern const cv::String disparityMap_file;
 extern const cv::String projectorGroupNum_file;
 extern const cv::String imageGroupNum_file;
 extern const char* images_group_dir;
@@ -45,12 +45,17 @@ extern const bool isThresh;
 extern const size_t white_thresh;
 extern const size_t black_thresh;
 
+// code map
 extern const float mapping_thresh;
+extern const int length;
+extern const int length_;
+extern const float nearestDistSquare;
 
 extern const cv::Point nullPoint;
 
 // Simplify match file
 extern const int matchFileSimplifyMultiple;
+extern const int matchFileSimplifyThresh;
 
 // loop closing
 extern const double initial_max_distance_thresh;

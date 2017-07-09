@@ -1,5 +1,6 @@
 #include "GrayCodePattern.h"
 #include "Sfm.h"
+#include "Match.h"
 #include "Decode.h"
 #include "LoopClosing.h"
 #include "MeshRecon.h"
@@ -42,7 +43,7 @@ int main(int argh, char* argv[])
 		break;
 		// Match feature points
 	case 6:
-		Sfm::simplifyMatchFile();
+		Match::simplifyMatchFile();
 		break;
 		// Simplify match file
 	case 7:

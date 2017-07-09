@@ -1,0 +1,86 @@
+
+pmvs2
+D:\document\project\3dSurface3\code\expr9\sfm_images\d.nvm.cmvs\00\
+option-0000
+--------------------------------------------------
+--- Summary of specified options ---
+# of timages: 10 (enumeration)
+# of oimages: 0 (enumeration)
+level: 1  csize: 2
+threshold: 0.95  wsize: 7
+minImageNum: 3  CPU: 4
+useVisData: 1  sequence: -1
+--------------------------------------------------
+Reading images: **********
+013 2   Harris running ...Harris running ...Harris running ...Harris running ...1523 harris done
+DoG running...1585 harris done
+DoG running...1577 harris done
+1576 harris done
+DoG running...DoG running...2037 dog done
+2039 dog done
+4 Harris running ...2040 dog done
+5 Harris running ...6 Harris running ...2040 dog done
+7 Harris running ...1451 harris done
+DoG running...1587 harris done
+DoG running...1530 harris done
+DoG running...1481 harris done
+DoG running...1981 dog done
+8 Harris running ...2039 dog done
+9 Harris running ...2036 dog done
+2002 dog done
+1526 harris done
+DoG running...1491 harris done
+DoG running...2036 dog done
+2024 dog done
+done
+adding seeds 
+(9,0)(8,0)(1,1)(2,4)(0,0)(5,0)(6,0)(7,0)(3,0)(4,0)done
+---- Initial: 0 secs ----
+Total pass fail0 fail1 refinepatch: 50128 5 49887 236 241
+Total pass fail0 fail1 refinepatch: 100 0.00997447 99.5192 0.470795 0.480769
+Expanding patches...
+---- EXPANSION: 0 secs ----
+Total pass fail0 fail1 refinepatch: 151 74 23 54 128
+Total pass fail0 fail1 refinepatch: 100 49.0066 15.2318 35.7616 84.7682
+FilterOutside
+mainbody: 
+Gain (ave/var): 0.0649356 0.046015
+79 -> 78 (98.7342%)	0 secs
+Filter Exact: **********
+78 -> 59 (75.641%)	0 secs
+FilterNeighbor:	59 -> 28 (47.4576%)	0 secs
+FilterGroups:	20
+28 -> 0 (0%)	0 secs
+STATUS: 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 
+Expanding patches...
+---- EXPANSION: 0 secs ----
+Total pass fail0 fail1 refinepatch: 0 0 0 0 0
+Total pass fail0 fail1 refinepatch: -1.#IND -1.#IND -1.#IND -1.#IND -1.#IND
+FilterOutside
+mainbody: 
+Gain (ave/var): 0 0
+0 -> 0 (-1.#IND%)	0 secs
+Filter Exact: **********
+0 -> 0 (-1.#IND%)	0 secs
+FilterNeighbor:	FilterGroups:	STATUS: 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 
+Expanding patches...
+---- EXPANSION: 0 secs ----
+Total pass fail0 fail1 refinepatch: 0 0 0 0 0
+Total pass fail0 fail1 refinepatch: -1.#IND -1.#IND -1.#IND -1.#IND -1.#IND
+FilterOutside
+mainbody: 
+Gain (ave/var): 0 0
+0 -> 0 (-1.#IND%)	0 secs
+Filter Exact: **********
+0 -> 0 (-1.#IND%)	0 secs
+FilterNeighbor:	FilterGroups:	STATUS: 0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 0 0 0 0 0 
+0 0 0 0 0 
+---- Total: 0 secs ----

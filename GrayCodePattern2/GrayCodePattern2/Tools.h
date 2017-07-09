@@ -12,6 +12,7 @@ public:
 		cv::Point2f point;
 		int indexInSiftFile;
 		int code;
+		bool isMerged; // Is merged while calculating the code map
 	};
 
 	struct ThreeDPoint {

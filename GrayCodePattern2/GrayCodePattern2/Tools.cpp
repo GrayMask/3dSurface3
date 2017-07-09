@@ -248,6 +248,7 @@ void Tools::loadCamsPixelsForReconstuction(vector<PointWithCode>& camPixels, cv:
 			cv::Point2f p(x, y);
 			pwc.point = p;
 			pwc.indexInSiftFile = lastIdx;
+			pwc.isMerged = false;
 			lastIdx++;
 			inF >> pwc.code;
 		}
